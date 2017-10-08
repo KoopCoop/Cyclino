@@ -298,7 +298,7 @@ public class HandleTag {
         return anzahlMesswerte;
     }
 
-    public String[] GetMissionStatus() {//table 41
+    public String[] GetMissionStatus() {//table 41 doesn't quite do what I expect
         String[] missionstatus={"Wait for Status", "","","","",""};
         byte statusRegisterByte = block0[2];
         byte statusRegisterByte2 = block0[8];
@@ -307,10 +307,10 @@ public class HandleTag {
         int missionCompleted = (statusRegisterByte & 0x10);
         int missionOverflow = (statusRegisterByte & 0x04);
         int missionTimingError = (statusRegisterByte & 0x08);
-        int missionBatError = (statusRegisterByte2 & 0x02);
+        int missionBatError = (statusRegisterByte2 & 0x02);//Table53
         switch (state) {
             case 0:
-                missionstatus[0] = "Idle ";
+                missionstatus[0] = "Idle "; //// TODO: 08.10.17 why is this set when battery was low?
                 break;
             case 1:
                 missionstatus[0] = "Sampling in Progress ";
@@ -324,7 +324,7 @@ public class HandleTag {
         }
 
         if(missionCompleted != 0) {
-            missionstatus[1] = "Mission completed ";
+            missionstatus[1] = "Mission completed ";// TODO: 08.10.17 Why is this always zero?
         }
         else {
             missionstatus[1] = "";
@@ -336,13 +336,13 @@ public class HandleTag {
             missionstatus[2] = "";
         }
         if(missionTimingError != 0) {
-            missionstatus[3] = "Timing Error ";
+            missionstatus[3] = "Timing Error ";//this works
         }
         else {
             missionstatus[3] = "";
         }
         if(missionBatError != 0) {
-            missionstatus[4] = "BatError ";
+            missionstatus[4] = "BatError ";// TODO: 08.10.17 why doesn't this work?
         }
         else {
             missionstatus[4] = "";
