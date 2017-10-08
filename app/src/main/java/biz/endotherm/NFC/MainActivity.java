@@ -5,19 +5,15 @@ import java.text.DateFormat;
 import android.content.Intent;
 import android.app.PendingIntent;
 import android.content.IntentFilter;
-import android.renderscript.Sampler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseArray;
-import java.util.ArrayList;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -41,8 +37,6 @@ import java.io.StringBufferInputStream;
 
 public class MainActivity extends AppCompatActivity {
 
-   // TextView Value1;
-   // TextView Value2;
     TextView text_view;
     TextView anzahl;
     TextView wiederholungen;
@@ -76,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
 
         text_view = (TextView) findViewById(R.id.textView);
         missionStatus = (TextView) findViewById(R.id.MissionStatusText);
-        //Value1 = (TextView) findViewById(R.id.Value1_text);
         anzahl = (TextView) findViewById(R.id.anzahl);
         wiederholungen = (TextView) findViewById(R.id.wiederholungen);
         istIntervall = (TextView) findViewById(R.id.istIntervall);
@@ -183,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
                 numberPasses = wiederholungen.getText().toString();
                 handleTag.startDevice(currentTag, numberPasses, frequencyFromSpinner, cic);
 
-                if(missionStatus_val[0]=="Sampling in Progress " && handleTag.getText_val() !="Tag connection lost") {
+                if(missionStatus_val[0]=="Sampling in Progress " /*&& handleTag.getText_val() !="Tag connection lost"*/) {
                     startStopText.setText("Mission started with: " + numberPasses + " passes, " + frequencyFromSpinner + "  interval");
                 } else {
                     startStopText.setText("Starten der Mission leider fehlgeschlagen ("+handleTag.getText_val()+" "+missionStatus_val[3]+missionStatus_val[4]+"). Bitte erneut probieren!");
@@ -288,13 +281,6 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
-    }
-
-    public void intent_function(View view)
-    {
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
-        Log.i("intent ", "received change screen intent");
-        startActivity(intent);
     }
 
 }

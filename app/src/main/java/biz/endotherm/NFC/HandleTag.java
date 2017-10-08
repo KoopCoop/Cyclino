@@ -3,17 +3,11 @@ package biz.endotherm.NFC;
 import android.nfc.Tag;
 import android.nfc.tech.NfcV;
 import android.util.Log;
-import android.util.SparseArray;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 import java.io.IOException;
-
-/**
- * Created by ah on 06.05.2017.
- */
-
 
 public class HandleTag {
     private String text_val;
@@ -31,7 +25,6 @@ public class HandleTag {
     private ArrayList<DataPoint> data;
 
     //Getter und Setter
-   // public String  get_f_val(){return  f_val;}
     public String getText_val(){return text_val;}
     public String[] get_MissionStatus_val(){return missionStatus_val;}
     public String get_frequencyStringFromMs(){return frequencyStringFromMs;}
@@ -85,6 +78,7 @@ public class HandleTag {
                             DataPoint dataPoint = new DataPoint();
                             dataPoint.temp = ConvertValue(buffer[j*2+1], buffer[j*2+2]);
                             cal.setTime(GetMissionTimestamp());
+                            cal.add(Calendar.SECOND, -1*(GetFrequencyms()/1000)*anzahlMesswerte);
                             cal.add(Calendar.SECOND, (GetFrequencyms()/1000) * sample);
                             dataPoint.date = cal.getTime();
                             data.add(dataPoint);
@@ -134,7 +128,6 @@ public class HandleTag {
                         (byte) 0x0D, //Table39 Start bit is set, after this is written this starts the sampling process, interrupt enabled for On/Off
                         (byte) 0x00, //Table41 Status byte
                         (byte) 0x09, //Table43 INTERNAL sensor and ADC1 Sensor selected
-                        //(byte) 0x09, //Table45 EVERY 15s/10 MINUTES
                         (byte) frequencyRegister,
                         //(byte) 0x64, //Table47 100 passes, 16h
                         (byte) passesRegister,
@@ -146,7 +139,7 @@ public class HandleTag {
                     cmd[0] |= 0x40; //Table 39 Software Reset without battery
                     //cmd[0] |= 0x8C;//0x8C; //Table39 Software Reset with Battery
                 if (cic == 0)
-                    cmd[2] = 0x08;//only internal Sensor Table 43, no Cic available
+                    cmd[2] = 0x08;//only internal Sensor Table 43, no CIC available
                 byte[] ack = writeTag(cmd, (byte) 0);
                 Log.i("Tag data", "ack= " + bytesToHex(ack));
                 try {
@@ -187,7 +180,6 @@ public class HandleTag {
                 (byte) 0x40, //Table 73 ADC2 Sensor Configuration Register
                 //(byte) 0x10, //Table 75 ADC0 Sensor Configuration Register
                 (byte) 0x40, //Table 75 ADC0 Sensor Configuration Register
-                //(byte) 0x00, //Table 77 Internal Sensor Configuration Register
                 (byte) 0x78,//Cic höchste Genauigkeit, //Table 77 Internal Sensor Configuration Register
                 (byte) 0x00, //Table 79 Initial Delay Period Setup Register
                 (byte) 0x00, //Table 81  JTAG Enable Password Register
@@ -198,6 +190,50 @@ public class HandleTag {
                     cmd[3] = 0x5C; //höchste Genauigkeit für moving average
         byte[] ack = writeTag(cmd, (byte) 0x2);
         Log.i("Tag data", "ack= " + bytesToHex(ack));
+                try {
+                    nfcv_senseTag.close();
+                } catch (IOException e) {
+                    Log.i("Tag data", "transceive failed and stopped");
+                    text_val = "Tag disconnection failed";
+                    return;
+                }
+                text_val = "Tag disconnected";
+            }
+    }
+
+    public void writeBlock8(Tag tag) {
+        // to block 8
+
+        byte[] id = tag.getId();
+        boolean techFound = false;
+        // checking for NfcV
+        for (String tech : tag.getTechList())
+            if (tech.equals(NfcV.class.getName())) {
+                techFound = true;
+
+                // Get an instance of NfcV for the given tag:
+                nfcv_senseTag = NfcV.get(tag);
+
+                try {
+                    nfcv_senseTag.connect();
+                    text_val = "Tag connected";
+                } catch (IOException e) {
+                    text_val = "Tag connection lost";
+                    return;
+                }
+                byte[] cmd = new byte[]{
+                        (byte) 0x03,
+                        (byte) 0x8C,//Table128: a maximum of 912 samples is possible. With 908 there is still space for user data
+                        (byte) 0x00, //Table131
+                        (byte) 0x00, //Table131
+                        (byte) 0x00, //Table133
+                        (byte) 0x00, //Table133
+                        (byte) 0xA3, //Table135
+                        (byte) 0xA6, //Table135
+                };
+
+                byte[] ack = writeTag(cmd, (byte) 8);
+                Log.i("Tag data", "ack= " + bytesToHex(ack));
                 try {
                     nfcv_senseTag.close();
                 } catch (IOException e) {
@@ -265,12 +301,13 @@ public class HandleTag {
     public String[] GetMissionStatus() {//table 41
         String[] missionstatus={"Wait for Status", "","","","",""};
         byte statusRegisterByte = block0[2];
+        byte statusRegisterByte2 = block0[8];
         int batteryOn = (block0[1]& 0x08);
         int state = (statusRegisterByte & 0x03);
         int missionCompleted = (statusRegisterByte & 0x10);
         int missionOverflow = (statusRegisterByte & 0x04);
         int missionTimingError = (statusRegisterByte & 0x08);
-        int missionBip8Error = (statusRegisterByte & 0x20);
+        int missionBatError = (statusRegisterByte2 & 0x02);
         switch (state) {
             case 0:
                 missionstatus[0] = "Idle ";
@@ -304,8 +341,8 @@ public class HandleTag {
         else {
             missionstatus[3] = "";
         }
-        if(missionBip8Error != 0) {
-            missionstatus[4] = "Bip8Error ";
+        if(missionBatError != 0) {
+            missionstatus[4] = "BatError ";
         }
         else {
             missionstatus[4] = "";
@@ -516,6 +553,7 @@ public class HandleTag {
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegister(numberPasses);
 
+        writeBlock8(tag);
         writeBlock2(tag, cic);
         writeBlock0(tag, cic, frequencyRegister, passesRegister, 0);
         readTagData(tag);
@@ -548,7 +586,7 @@ public class HandleTag {
 
     protected double ConvertValue(byte loByte, byte hiByte) {
         int result = ((hiByte & 0xff)<<8)|(loByte & 0xff);//Internal temperature sensor: bit-Value
-        double calibrationOffset=-285; //varies significantly for different devices, has to be calibrated
+        double calibrationOffset=-285-21.35; //varies significantly for different devices, has to be calibrated
         double tempResult = calibrationOffset+(result)/35.7;
         return tempResult;
     }
