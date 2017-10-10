@@ -592,7 +592,7 @@ public class HandleTag {
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegister(numberPasses);
 
-        writeBlock236(tag, missionTimeStamp);
+        writeBlock236(tag, missionTimeStamp);//Mission timestamp is written into sensor memory
         writeBlock8(tag);
         writeBlock2(tag, cic);
         writeBlock0(tag, cic, frequencyRegister, passesRegister, 0);
