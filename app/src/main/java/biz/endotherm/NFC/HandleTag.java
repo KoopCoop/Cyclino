@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+
 import java.io.IOException;
 
 public class HandleTag {
@@ -16,10 +17,11 @@ public class HandleTag {
     private int frequency_ms=0;
     private byte[] block0={0,0,0,0,0,0,0,0};
     private byte[] block8={0,0,0,0,0,0,0,0};
+    private byte[] block236={0,0,0,0,0,0,0,0};
     //private byte[] cmd;
     private int anzahlMesswerte;
     private int numberOfPasses;
-    NfcV nfcv_senseTag;
+    private NfcV nfcv_senseTag;
     private ArrayList<DataPoint> data;
 
     //Getter und Setter
@@ -30,17 +32,14 @@ public class HandleTag {
     public int get_numberOfPasses(){return numberOfPasses;}
 
     public HandleTag() {
-        data = new ArrayList<DataPoint>();
+        data = new ArrayList<>();
     }
     //read data
     public void readTagData(Tag tag) {
         byte[] id = tag.getId();
-        boolean techFound = false;
         // checking for NfcV
         for (String tech : tag.getTechList())
             if (tech.equals(NfcV.class.getName())) {
-                techFound = true;
-
 
                 // Get an instance of NfcV for the given tag:
                 nfcv_senseTag = NfcV.get(tag);
@@ -55,17 +54,18 @@ public class HandleTag {
 
                 block0 = readTag((byte) 0x0);
                 block8 = readTag((byte) 0x8);
+                block236 = readTag((byte) 0xEC);//Block contains Mission Timestamp and Calibration
 
                 //Read Data at index of Data (Anzahl Daten)
-                anzahlMesswerte = GetSampleCount();
+                GetSampleCount();
                 frequency_ms = GetFrequencyms();
                 frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
                 numberOfPasses = GetNumberOfPasses();
-
                 missionStatus_val = GetMissionStatus();
 
+
                 data.clear();
-                Calendar cal = Calendar.getInstance();
+                Calendar cal = GetMissionTimestamp();
                 int pagesToRead = (anzahlMesswerte+3)/4;
                 int sample = 0;
                 for (int i=0; i<pagesToRead; i++) {
@@ -74,9 +74,7 @@ public class HandleTag {
                         if (sample++ < anzahlMesswerte) {
                             DataPoint dataPoint = new DataPoint();
                             dataPoint.temp = ConvertValue(buffer[j*2+1], buffer[j*2+2]);
-                            cal.setTime(GetMissionTimestamp());
-                            cal.add(Calendar.SECOND, -1*(GetFrequencyms()/1000)*anzahlMesswerte);
-                            cal.add(Calendar.SECOND, (GetFrequencyms()/1000) * sample);
+                            cal.add(Calendar.SECOND, (GetFrequencyms()/1000));
                             dataPoint.date = cal.getTime();
                             data.add(dataPoint);
                         }
@@ -95,15 +93,13 @@ public class HandleTag {
             }
 
 
-    public void writeBlock0(Tag tag, int cic, int frequencyRegister, int passesRegister, int reset) {
+    private void writeBlock0(Tag tag, int cic, int frequencyRegister, int passesRegister, int reset) {
         // to block 0
 
         byte[] id = tag.getId();
-        boolean techFound = false;
         // checking for NfcV
         for (String tech : tag.getTechList())
             if (tech.equals(NfcV.class.getName())) {
-                techFound = true;
 
                 // Get an instance of NfcV for the given tag:
                 nfcv_senseTag = NfcV.get(tag);
@@ -145,15 +141,13 @@ public class HandleTag {
             }
     }
 
-    public void writeBlock2(Tag tag, int cic) {
+    private void writeBlock2(Tag tag, int cic) {
         //write  to block 2
         byte[] id = tag.getId();
-        boolean techFound = false;
+
         // checking for NfcV
         for (String tech : tag.getTechList())
             if (tech.equals(NfcV.class.getName())) {
-                techFound = true;
-
 
                 // Get an instance of NfcV for the given tag:
                 nfcv_senseTag = NfcV.get(tag);
@@ -193,15 +187,13 @@ public class HandleTag {
             }
     }
 
-    public void writeBlock8(Tag tag) {
+    private void writeBlock8(Tag tag) {
         // to block 8
 
         byte[] id = tag.getId();
-        boolean techFound = false;
         // checking for NfcV
         for (String tech : tag.getTechList())
             if (tech.equals(NfcV.class.getName())) {
-                techFound = true;
 
                 // Get an instance of NfcV for the given tag:
                 nfcv_senseTag = NfcV.get(tag);
@@ -237,15 +229,13 @@ public class HandleTag {
             }
     }
 
-    public void writeBlock236(Tag tag, long missionTimeStamp) {
+    private void writeBlock236(Tag tag, long missionTimeStamp) {
         // to block 236
 
         byte[] id = tag.getId();
-        boolean techFound = false;
         // checking for NfcV
         for (String tech : tag.getTechList())
             if (tech.equals(NfcV.class.getName())) {
-                techFound = true;
 
                 // Get an instance of NfcV for the given tag:
                 nfcv_senseTag = NfcV.get(tag);
@@ -283,10 +273,10 @@ public class HandleTag {
 
 
     //Write Tag with a Block to index
-    public byte[] writeTag(byte[] cmd,byte index)
+    private byte[] writeTag(byte[] cmd,byte index)
     {
         byte[] cmdWriteTag=new byte[cmd.length+3];
-        byte[] ack = new byte[]{0x01};
+        byte[] ack;
         cmdWriteTag[0]=0x02;
         cmdWriteTag[1]=0x21; // ISO15693 command code, in this case it is Write Single Block
         cmdWriteTag[2]=index;
@@ -327,15 +317,15 @@ public class HandleTag {
     }
 
 
-    public int GetSampleCount() {
+    private void GetSampleCount() {
         byte[] idx=block8;
         byte index=idx[5]; //Table133   2 Bytes
         byte index2=idx[4];
-        int anzahlMesswerte = ((index2 & 0xff) >> 8) | ((index & 0xff) );
-        return anzahlMesswerte;
+        anzahlMesswerte = ((index2 & 0xff) >> 8) | ((index & 0xff) );//testen: ohne int davor
+        return;
     }
 
-    public String[] GetMissionStatus() {//table 41 doesn't quite do what I expect
+    private String[] GetMissionStatus() {//table 41 doesn't quite do what I expect
         String[] missionstatus={"Wait for Status", "","","","",""};
         byte statusRegisterByte = block0[2];
         byte statusRegisterByte2 = block0[8];
@@ -386,7 +376,7 @@ public class HandleTag {
         return missionstatus;
     }
 
-    public int GetFrequencyms() {
+    private int GetFrequencyms() {
         byte frequencyRegisterByte = block0[4];
         int frequencyIndex = (frequencyRegisterByte & 0x1f);//((frequencyRegisterByte & 0xff) << 3);
         int frequency = 0; //frequency in ms
@@ -445,7 +435,7 @@ public class HandleTag {
         return frequency;
     }
 
-    public String GetFrequencyStringFromMs(int frequencyms){
+    private String GetFrequencyStringFromMs(int frequencyms){
         frequencyStringFromMs="";
         switch (frequencyms) {//custom time not supported
             case 250:
@@ -501,16 +491,15 @@ public class HandleTag {
         return frequencyStringFromMs;
     }
 
-    public int GetPassesRegister(String numberPassesString) {
+    private int GetPassesRegister(String numberPassesString) {
         int numberPasses = 0;
         if (!numberPassesString.equals("")) {
             numberPasses = Integer.parseInt(numberPassesString);
         }
-        int numberPassesleast = (numberPasses & 0xff); //number of passes, least significant byte, table 47
-        return numberPassesleast;
+        return numberPasses & 0xff; //number of passes, least significant byte, table 47
     }
 
-    public int GetFrequencyRegister(String FrequencyString, String numberPassesString) {
+    private int GetFrequencyRegister(String FrequencyString, String numberPassesString) {
         int numberPasses = 0;
         int frequency = 0;
 
@@ -518,8 +507,7 @@ public class HandleTag {
             numberPasses = Integer.parseInt(numberPassesString);
         }
         int frequencyByte = GetFrequencyByteFromString(FrequencyString);
-        int frequencyRegister = (((numberPasses & 0x700) << 3) | (frequencyByte));//Table 45, first three bits are the most significant bits of (11 bit) number of passes
-        return frequencyRegister;
+        return (((numberPasses & 0x700) << 3) | (frequencyByte));//Table 45, first three bits are the most significant bits of (11 bit) number of passes
     }
 
     private int GetFrequencyByteFromString(String Frequenz) {
@@ -577,22 +565,16 @@ public class HandleTag {
         return frequencyByte;
     }
 
-    public int GetNumberOfPasses() {
+    private int GetNumberOfPasses() {
         byte numberPassesRegisterByteMost = block0[4];
         byte numberPassesRegisterByteLeast= block0[5];
-        int numberOfPassesIndex = (((numberPassesRegisterByteMost & 0xE0) >> 3) | (numberPassesRegisterByteLeast & 0xff));
-
-        return numberOfPassesIndex;
+        return (((numberPassesRegisterByteMost & 0xE0) >> 3) | (numberPassesRegisterByteLeast & 0xff));
     }
 
     public void startDevice(Tag tag, String numberPasses, String FrequencyString, int cic) {
-        long missionTimeStamp = System.currentTimeMillis() / 1000L;
-
-
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegister(numberPasses);
-
-        writeBlock236(tag, missionTimeStamp);//Mission timestamp is written into sensor memory
+        SetMissionTimestamp(tag);
         writeBlock8(tag);
         writeBlock2(tag, cic);
         writeBlock0(tag, cic, frequencyRegister, passesRegister, 0);
@@ -604,15 +586,18 @@ public class HandleTag {
         readTagData(tag);
     }
 
-    public Date GetMissionTimestamp() {//später soll dieser Wert aus der Datenbank kommen
-        Date now = new Date();
-        return now;
+    private Calendar GetMissionTimestamp() {//from block 236
+        long UnixTime = ((block236[1]&0xff)<<24)+((block236[2]&0xff)<<16)+((block236[3]&0xff)<<8)+(block236[4]&0xff);
+        Log.i("UnixTime", "UnixTime= " + UnixTime);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(UnixTime * 1000);
+        return calendar;
     }
 
-    public Date SetMissionTimestamp() {//später soll diese Funktion die aktuelle Zeit in die Datenbank schreiben
-        Date now = new Date();
-        return now;
-    } // TODO: 23.09.17
+    private void SetMissionTimestamp(Tag tag) {
+        long missionTimeStamp = System.currentTimeMillis() / 1000L;
+        writeBlock236(tag, missionTimeStamp);//Mission timestamp is written to sensor memory
+    }
 
     public class DataPoint {
         public Date date;
@@ -624,16 +609,15 @@ public class HandleTag {
     }
 
 
-    protected double ConvertValue(byte loByte, byte hiByte) {
+    private double ConvertValue(byte loByte, byte hiByte) {
         int result = ((hiByte & 0xff)<<8)|(loByte & 0xff);//Internal temperature sensor: bit-Value
         double calibrationOffset=-285-21.35; //varies significantly for different devices, has to be calibrated
-        double tempResult = calibrationOffset+(result)/35.7;
-        return tempResult;
+        return calibrationOffset+(result)/35.7;
     }
 
     //parsing function
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
-    public static String bytesToHex(byte[] bytes) {
+    final private static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    private static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 3];
         for ( int j = 1; j < bytes.length; j++ ) {
             int v = bytes[j] & 0xFF;

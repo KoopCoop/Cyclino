@@ -17,10 +17,8 @@
 
             <TextView
                 android:id="@+id/textView"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
                 android:layout_weight="0.76"
                 android:text="NFC tag"
                 android:textColor="@android:color/black" />
@@ -29,8 +27,6 @@
                 android:id="@+id/MissionStatusText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignStart="@+id/stopButton"
                 android:text="Daten Status"
                 android:textAlignment="textEnd"
                 android:textAppearance="@style/TextAppearance.AppCompat" />
@@ -45,33 +41,24 @@
                 android:id="@+id/textView0"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/textView"
                 android:layout_column="0"
                 android:layout_row="0"
-                android:layout_weight="1"
-                android:text="Intervall" />
+                android:text="Messintervall" />
 
             <TextView
                 android:id="@+id/textView1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/textView"
                 android:layout_column="1"
                 android:layout_row="0"
-                android:layout_weight="1"
                 android:text=" (" />
 
             <TextView
                 android:id="@+id/textView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/textView"
                 android:layout_column="2"
                 android:layout_row="0"
-                android:layout_weight="1"
                 android:text="ist"
                 android:textColor="@android:color/holo_blue_dark" />
 
@@ -79,11 +66,8 @@
                 android:id="@+id/textView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/textView"
                 android:layout_column="3"
                 android:layout_row="0"
-                android:layout_weight="1"
                 android:text=" soll"
                 android:textColor="@android:color/black" />
 
@@ -91,23 +75,16 @@
                 android:id="@+id/textView4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/textView"
                 android:layout_column="4"
                 android:layout_row="0"
-                android:layout_weight="1"
                 android:text="):" />
 
             <TextView
                 android:id="@+id/istIntervall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/wiederholungen"
-                android:layout_alignEnd="@+id/wiederholungen"
-                android:layout_alignStart="@+id/istWiederholungen"
                 android:layout_column="5"
                 android:layout_row="0"
-                android:layout_weight="1"
                 android:paddingLeft="20dp"
                 android:paddingRight="20dp"
                 android:text="aktuell"
@@ -127,33 +104,24 @@
                 android:id="@+id/textView5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/startButton"
-                android:layout_alignParentStart="true"
                 android:layout_column="0"
                 android:layout_row="1"
-                android:layout_weight="1"
                 android:text="Durchgänge" />
 
             <TextView
                 android:id="@+id/textView6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/startButton"
-                android:layout_alignParentStart="true"
                 android:layout_column="1"
                 android:layout_row="1"
-                android:layout_weight="1"
                 android:text=" (" />
 
             <TextView
                 android:id="@+id/textView7"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/startButton"
-                android:layout_alignParentStart="true"
                 android:layout_column="2"
                 android:layout_row="1"
-                android:layout_weight="1"
                 android:text="ist"
                 android:textColor="@android:color/holo_blue_dark" />
 
@@ -161,11 +129,8 @@
                 android:id="@+id/textView8"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/startButton"
-                android:layout_alignParentStart="true"
                 android:layout_column="3"
                 android:layout_row="1"
-                android:layout_weight="1"
                 android:text=" soll"
                 android:textColor="@android:color/black" />
 
@@ -173,23 +138,16 @@
                 android:id="@+id/textView9"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/startButton"
-                android:layout_alignParentStart="true"
                 android:layout_column="4"
                 android:layout_row="1"
-                android:layout_weight="1"
                 android:text="):" />
 
             <TextView
                 android:id="@+id/istWiederholungen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/wiederholungen"
-                android:layout_alignBottom="@+id/wiederholungen"
-                android:layout_alignStart="@+id/stopButton"
                 android:layout_column="5"
                 android:layout_row="1"
-                android:layout_weight="1"
                 android:paddingLeft="20dp"
                 android:paddingRight="20dp"
                 android:text="aktuell"
@@ -199,11 +157,8 @@
                 android:id="@+id/wiederholungen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
                 android:layout_column="6"
                 android:layout_row="1"
-                android:layout_weight="1"
                 android:ems="8"
                 android:inputType="number"
                 android:textColor="@android:color/black" />
@@ -222,8 +177,6 @@
                 android:id="@+id/stopButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_below="@+id/wiederholungen"
                 android:layout_marginEnd="12dp"
                 android:layout_weight="1"
                 android:text="Stop"
@@ -233,8 +186,6 @@
                 android:id="@+id/startButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignStart="@+id/wiederholungen"
-                android:layout_below="@+id/wiederholungen"
                 android:layout_weight="1"
                 android:text="Start" />
 
@@ -247,14 +198,60 @@
 
             <TextView
                 android:id="@+id/startStop"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/anzahl"
-                android:layout_alignParentEnd="true"
-                android:layout_alignStart="@+id/anzahl"
                 android:layout_weight="1"
                 android:text="Zum Starten/Stoppen einer Mission: Bitte Sollwerte editieren und Aktion auswählen"
                 android:textColor="@android:color/holo_red_dark" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="5dp"
+                android:text="Kalibration:" />
+
+            <EditText
+                android:id="@+id/textView15"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text=""
+                tools:width="50dp" />
+
+            <TextView
+                android:id="@+id/textView13"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="10dp"
+                android:text="°C" />
+
+            <TextView
+                android:id="@+id/textView14"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cyclino Wert:" />
+
+            <EditText
+                android:id="@+id/textView16"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text=""
+                tools:width="70dp" />
+
+            <Button
+                android:id="@+id/button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Setzen" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -266,20 +263,13 @@
                 android:id="@+id/textView10"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/anzahl"
-                android:layout_alignBottom="@+id/anzahl"
-                android:layout_alignParentStart="true"
                 android:layout_weight="1"
                 android:text="Missionswerte" />
 
-            <EditText
+            <TextView
                 android:id="@+id/anzahl"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:layout_column="6"
-                android:layout_row="1"
                 android:layout_weight="1"
                 android:ems="10"
                 android:inputType="number"
