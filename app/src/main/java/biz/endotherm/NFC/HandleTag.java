@@ -12,8 +12,6 @@ import java.io.IOException;
 public class HandleTag {
     private String text_val;
     private String[] missionStatus_val={"Bitte Sensor scannen!", "","","",""};
-    private String f_val="00 00 00 00 00 00 00 00";
-    private String g_val="00 00 00 00 00 00 00 00";
     private String frequencyStringFromMs="0";
     private int frequency_ms=0;
     private byte[] block0={0,0,0,0,0,0,0,0};
@@ -28,7 +26,6 @@ public class HandleTag {
     public String getText_val(){return text_val;}
     public String[] get_MissionStatus_val(){return missionStatus_val;}
     public String get_frequencyStringFromMs(){return frequencyStringFromMs;}
-    public String get_f_val(){return f_val;};
     public int get_anzahl(){return anzahlMesswerte;}
     public int get_numberOfPasses(){return numberOfPasses;}
 
@@ -86,12 +83,6 @@ public class HandleTag {
                     }
                 }
 
-                f_val = bytesToHex(readTag((byte) 0x09));
-                Log.i("Tag data", "ADC result1= " + f_val);
-                g_val = bytesToHex(readTag((byte) 0x0A));
-                Log.i("Tag data", "ADC result1= " + f_val);
-
-
                 }
                 try {
                     nfcv_senseTag.close();
@@ -141,6 +132,7 @@ public class HandleTag {
                 if (cic == 0)
                     cmd[2] = 0x08;//only internal Sensor Table 43, no CIC available
                 byte[] ack = writeTag(cmd, (byte) 0);
+
                 Log.i("Tag data", "ack= " + bytesToHex(ack));
                 try {
                     nfcv_senseTag.close();
@@ -245,6 +237,51 @@ public class HandleTag {
             }
     }
 
+    public void writeBlock236(Tag tag, long missionTimeStamp) {
+        // to block 236
+
+        byte[] id = tag.getId();
+        boolean techFound = false;
+        // checking for NfcV
+        for (String tech : tag.getTechList())
+            if (tech.equals(NfcV.class.getName())) {
+                techFound = true;
+
+                // Get an instance of NfcV for the given tag:
+                nfcv_senseTag = NfcV.get(tag);
+
+                try {
+                    nfcv_senseTag.connect();
+                    text_val = "Tag connected";
+                } catch (IOException e) {
+                    text_val = "Tag connection lost";
+                    return;
+                }
+                byte[] timestamp = new byte[]{
+                        (byte) (missionTimeStamp >> 24),
+                        (byte) (missionTimeStamp >> 16),
+                        (byte) (missionTimeStamp >> 8),
+                        (byte) (missionTimeStamp),
+                        (byte) 0,
+                        (byte) 0,
+                        (byte) 0,
+                        (byte) 0,
+                };
+
+                byte[] ack = writeTag(timestamp, (byte) 0xEC);//Block236
+                Log.i("Tag data", "ack= " + bytesToHex(ack));
+                try {
+                    nfcv_senseTag.close();
+                } catch (IOException e) {
+                    Log.i("Tag data", "transceive failed and stopped");
+                    text_val = "Tag disconnection failed";
+                    return;
+                }
+                text_val = "Tag disconnected";
+            }
+    }
+
+
     //Write Tag with a Block to index
     public byte[] writeTag(byte[] cmd,byte index)
     {
@@ -302,7 +339,6 @@ public class HandleTag {
         String[] missionstatus={"Wait for Status", "","","","",""};
         byte statusRegisterByte = block0[2];
         byte statusRegisterByte2 = block0[8];
-        int batteryOn = (block0[1]& 0x08);
         int state = (statusRegisterByte & 0x03);
         int missionCompleted = (statusRegisterByte & 0x10);
         int missionOverflow = (statusRegisterByte & 0x04);
@@ -310,7 +346,7 @@ public class HandleTag {
         int missionBatError = (statusRegisterByte2 & 0x02);//Table53
         switch (state) {
             case 0:
-                missionstatus[0] = "Idle "; //// TODO: 08.10.17 why is this set when battery was low?
+                missionstatus[0] = "Idle ";
                 break;
             case 1:
                 missionstatus[0] = "Sampling in Progress ";
@@ -342,7 +378,7 @@ public class HandleTag {
             missionstatus[3] = "";
         }
         if(missionBatError != 0) {
-            missionstatus[4] = "BatError ";// TODO: 08.10.17 why doesn't this work?
+            missionstatus[4] = "BatError ";// this works
         }
         else {
             missionstatus[4] = "";
@@ -550,9 +586,13 @@ public class HandleTag {
     }
 
     public void startDevice(Tag tag, String numberPasses, String FrequencyString, int cic) {
+        long missionTimeStamp = System.currentTimeMillis() / 1000L;
+
+
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegister(numberPasses);
 
+        writeBlock236(tag, missionTimeStamp);
         writeBlock8(tag);
         writeBlock2(tag, cic);
         writeBlock0(tag, cic, frequencyRegister, passesRegister, 0);
