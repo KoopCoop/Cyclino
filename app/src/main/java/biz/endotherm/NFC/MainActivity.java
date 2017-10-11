@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private Runnable mTimer;
 
     //display variables
-    String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="", frequencyStringFromMs="0", numberPasses="";
+    String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="", frequencyStringFromMs="0", numberPasses="", missionTimeStamp="";
     int anzahlMesswerte = 0;
     int gesetzteWiederholungen = 0;
     String gesetztesIntervall = "";
@@ -177,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
                 handleTag.startDevice(currentTag, numberPasses, frequencyFromSpinner, cic);
 
                 if(missionStatus_val[0]=="Sampling in Progress " /*&& handleTag.getText_val() !="Tag connection lost"*/) {
-                    startStopText.setText("Mission started with: " + numberPasses + " passes, " + frequencyFromSpinner + "  interval");
+                    startStopText.setText("Mission gestartet mit: " + numberPasses + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall");
                 } else {
                     startStopText.setText("Starten der Mission leider fehlgeschlagen ("+handleTag.getText_val()+" "+missionStatus_val[3]+missionStatus_val[4]+"). Bitte erneut probieren!");
                 }

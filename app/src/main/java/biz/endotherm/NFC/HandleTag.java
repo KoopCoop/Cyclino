@@ -271,7 +271,6 @@ public class HandleTag {
             }
     }
 
-
     //Write Tag with a Block to index
     private byte[] writeTag(byte[] cmd,byte index)
     {
@@ -587,7 +586,7 @@ public class HandleTag {
     }
 
     private Calendar GetMissionTimestamp() {//from block 236
-        long UnixTime = ((block236[1]&0xff)<<24)+((block236[2]&0xff)<<16)+((block236[3]&0xff)<<8)+(block236[4]&0xff);
+        long UnixTime = ((block236[1]&0xff)<<24)|((block236[2]&0xff)<<16)|((block236[3]&0xff)<<8)|(block236[4]&0xff);
         Log.i("UnixTime", "UnixTime= " + UnixTime);
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(UnixTime * 1000);
@@ -611,8 +610,9 @@ public class HandleTag {
 
     private double ConvertValue(byte loByte, byte hiByte) {
         int result = ((hiByte & 0xff)<<8)|(loByte & 0xff);//Internal temperature sensor: bit-Value
-        double calibrationOffset=-285-21.35; //varies significantly for different devices, has to be calibrated
-        return calibrationOffset+(result)/35.7;
+        int calibrationOffset = ((block236[5] & 0xff) << 8)|(block236[6] & 0xff);
+        //int calibrationOffset=-10937; //varies significantly for different devices, has to be calibrated
+        return (result-calibrationOffset)/35.7;
     }
 
     //parsing function
