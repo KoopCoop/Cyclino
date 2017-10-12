@@ -6,6 +6,7 @@ import android.util.Log;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.lang.Math;
 
 
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class HandleTag {
     public void readTagData(Tag tag) {
         byte[] id = tag.getId();
         // checking for NfcV
-        for (String tech : tag.getTechList())
+        for (String tech : tag.getTechList()) {
             if (tech.equals(NfcV.class.getName())) {
 
                 // Get an instance of NfcV for the given tag:
@@ -65,37 +66,35 @@ public class HandleTag {
 
 
                 data.clear();
-                Calendar cal = GetMissionTimestamp();
-                int pagesToRead = (anzahlMesswerte+3)/4;
+                Calendar cal = GetSetMissionTimestamp();
+                int pagesToRead = (anzahlMesswerte + 3) / 4;
                 int sample = 0;
-                for (int i=0; i<pagesToRead; i++) {
-                    byte[] buffer = readTag((byte)(0x09+i));
-                    for (int j=0; j<4; j++) {
+                for (int i = 0; i < pagesToRead; i++) {
+                    byte[] buffer = readTag((byte) (0x09 + i));
+                    for (int j = 0; j < 4; j++) {
                         if (sample++ < anzahlMesswerte) {
                             DataPoint dataPoint = new DataPoint();
-                            dataPoint.temp = ConvertValue(buffer[j*2+1], buffer[j*2+2]);
-                            cal.add(Calendar.SECOND, (GetFrequencyms()/1000));
+                            dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2]);
+                            cal.add(Calendar.SECOND, (GetFrequencyms() / 1000));
                             dataPoint.date = cal.getTime();
                             data.add(dataPoint);
                         }
                     }
                 }
-
-                }
-                try {
-                    nfcv_senseTag.close();
-                } catch (IOException e) {
-                    Log.i("Tag data", "transceive failed and stopped");
-                    text_val = "Tag disconnection failed";
-                    return;
-                }
-                text_val = "Tag disconnected";
             }
+        }
+        try {
+            nfcv_senseTag.close();
+        } catch (IOException e) {
+            Log.i("Tag data", "transceive failed and stopped");
+            text_val = "Tag disconnection failed";
+            return;
+        }
+        text_val = "Tag disconnected";
+    }
 
 
-    private void writeBlock0(Tag tag, int cic, int frequencyRegister, int passesRegister, int reset) {
-        // to block 0
-
+    private void writeBlock(byte block, Tag tag, byte[] cmd) {
         byte[] id = tag.getId();
         // checking for NfcV
         for (String tech : tag.getTechList())
@@ -111,23 +110,7 @@ public class HandleTag {
                     text_val = "Tag connection lost";
                     return;
                 }
-                byte[] cmd = new byte[]{  //Start Bit in Table39  gesetzt.
-                        (byte) 0x0D, //Table39 Start bit is set, after this is written this starts the sampling process, interrupt enabled for On/Off
-                        (byte) 0x00, //Table41 Status byte
-                        (byte) 0x09, //Table43 INTERNAL sensor and ADC1 Sensor selected
-                        (byte) frequencyRegister,
-                        //(byte) 0x64, //Table47 100 passes, 16h
-                        (byte) passesRegister,
-                        (byte) 0x01, //Table49 No averaging selected
-                        (byte) 0x00, //Table51
-                        (byte) 0x00, //Table53 no thermistor
-                };
-                if (reset == 1)
-                    cmd[0] |= 0x40; //Table 39 Software Reset without battery
-                    //cmd[0] |= 0x8C;//0x8C; //Table39 Software Reset with Battery
-                if (cic == 0)
-                    cmd[2] = 0x08;//only internal Sensor Table 43, no CIC available
-                byte[] ack = writeTag(cmd, (byte) 0);
+                byte[] ack = writeTag(cmd, block);
 
                 Log.i("Tag data", "ack= " + bytesToHex(ack));
                 try {
@@ -141,24 +124,27 @@ public class HandleTag {
             }
     }
 
-    private void writeBlock2(Tag tag, int cic) {
-        //write  to block 2
-        byte[] id = tag.getId();
+    private byte[] cmdBlock0(int frequencyRegister, int passesRegister, int reset, int cic){
+        byte[] cmd = new byte[]{  //Start Bit in Table39  gesetzt.
+                (byte) 0x0D, //Table39 Start bit is set, after this is written this starts the sampling process, interrupt enabled for On/Off
+                (byte) 0x00, //Table41 Status byte
+                (byte) 0x09, //Table43 INTERNAL sensor and ADC1 Sensor selected
+                (byte) frequencyRegister,
+                //(byte) 0x64, //Table47 100 passes, 16h
+                (byte) passesRegister,
+                (byte) 0x01, //Table49 No averaging selected
+                (byte) 0x00, //Table51
+                (byte) 0x00, //Table53 no thermistor
+        };
+        if (reset == 1)
+            cmd[0] |= 0x40; //Table 39 Software Reset without battery
+        //cmd[0] |= 0x8C;//0x8C; //Table39 Software Reset with Battery
+        if (cic == 0)
+            cmd[2] = 0x08;//only internal Sensor Table 43, no CIC available
+        return cmd;
+    }
 
-        // checking for NfcV
-        for (String tech : tag.getTechList())
-            if (tech.equals(NfcV.class.getName())) {
-
-                // Get an instance of NfcV for the given tag:
-                nfcv_senseTag = NfcV.get(tag);
-
-                try {
-                    nfcv_senseTag.connect();
-                    text_val = "Tag connected";
-                } catch (IOException e) {
-                    text_val = "Tag connection lost";
-                    return;
-                }
+    private byte[] cmdBlock2(int cic){
         byte[] cmd = new byte[]{
                 //(byte) 0x11, //Table 71 Reference-ADC1 Configuration Register DECIMATION 12 BIT
                 (byte) 0x40, //Table 71 Reference-ADC1 Configuration Register DECIMATION 12 BIT
@@ -172,104 +158,38 @@ public class HandleTag {
                 (byte) 0x00, //Table 83 Initial Delay Period Register
                 (byte) 0x00, //Table 85 Initial Delay Period Register
         };
-                if (cic == 0)
-                    cmd[3] = 0x5C; //höchste Genauigkeit für moving average
-        byte[] ack = writeTag(cmd, (byte) 0x2);
-        Log.i("Tag data", "ack= " + bytesToHex(ack));
-                try {
-                    nfcv_senseTag.close();
-                } catch (IOException e) {
-                    Log.i("Tag data", "transceive failed and stopped");
-                    text_val = "Tag disconnection failed";
-                    return;
-                }
-                text_val = "Tag disconnected";
-            }
+        if (cic == 0)
+            cmd[3] = 0x5C; //höchste Genauigkeit für moving average
+        return cmd;
     }
 
-    private void writeBlock8(Tag tag) {
-        // to block 8
-
-        byte[] id = tag.getId();
-        // checking for NfcV
-        for (String tech : tag.getTechList())
-            if (tech.equals(NfcV.class.getName())) {
-
-                // Get an instance of NfcV for the given tag:
-                nfcv_senseTag = NfcV.get(tag);
-
-                try {
-                    nfcv_senseTag.connect();
-                    text_val = "Tag connected";
-                } catch (IOException e) {
-                    text_val = "Tag connection lost";
-                    return;
-                }
-                byte[] cmd = new byte[]{
-                        (byte) 0x03,
-                        (byte) 0x8C,//Table128: a maximum of 912 samples is possible. With 908 there is still space for user data
-                        (byte) 0x00, //Table131
-                        (byte) 0x00, //Table131
-                        (byte) 0x00, //Table133
-                        (byte) 0x00, //Table133
-                        (byte) 0xA3, //Table135
-                        (byte) 0xA6, //Table135
-                };
-
-                byte[] ack = writeTag(cmd, (byte) 8);
-                Log.i("Tag data", "ack= " + bytesToHex(ack));
-                try {
-                    nfcv_senseTag.close();
-                } catch (IOException e) {
-                    Log.i("Tag data", "transceive failed and stopped");
-                    text_val = "Tag disconnection failed";
-                    return;
-                }
-                text_val = "Tag disconnected";
-            }
+    private byte[] cmdBlock8(){
+        byte[] cmd = new byte[]{
+                (byte) 0x03,
+                (byte) 0x8C,//Table128: a maximum of 912 samples is possible. With 908 there is still space for user data
+                (byte) 0x00, //Table131
+                (byte) 0x00, //Table131
+                (byte) 0x00, //Table133
+                (byte) 0x00, //Table133
+                (byte) 0xA3, //Table135
+                (byte) 0xA6, //Table135
+        };
+        return cmd;
     }
 
-    private void writeBlock236(Tag tag, long missionTimeStamp) {
-        // to block 236
-
-        byte[] id = tag.getId();
-        // checking for NfcV
-        for (String tech : tag.getTechList())
-            if (tech.equals(NfcV.class.getName())) {
-
-                // Get an instance of NfcV for the given tag:
-                nfcv_senseTag = NfcV.get(tag);
-
-                try {
-                    nfcv_senseTag.connect();
-                    text_val = "Tag connected";
-                } catch (IOException e) {
-                    text_val = "Tag connection lost";
-                    return;
-                }
-                byte[] timestamp = new byte[]{
-                        (byte) (missionTimeStamp >> 24),
-                        (byte) (missionTimeStamp >> 16),
-                        (byte) (missionTimeStamp >> 8),
-                        (byte) (missionTimeStamp),
-                        (byte) 0,
-                        (byte) 0,
-                        (byte) 0,
-                        (byte) 0,
-                };
-
-                byte[] ack = writeTag(timestamp, (byte) 0xEC);//Block236
-                Log.i("Tag data", "ack= " + bytesToHex(ack));
-                try {
-                    nfcv_senseTag.close();
-                } catch (IOException e) {
-                    Log.i("Tag data", "transceive failed and stopped");
-                    text_val = "Tag disconnection failed";
-                    return;
-                }
-                text_val = "Tag disconnected";
-            }
-    }
+    private byte[] cmdBlock236(long missionTimeStamp, long newCalibrationOffset){
+        byte[] timestamp = new byte[]{
+                (byte) (missionTimeStamp >> 24),
+                (byte) (missionTimeStamp >> 16),
+                (byte) (missionTimeStamp >> 8),
+                (byte) (missionTimeStamp),
+                (byte) (newCalibrationOffset >> 24),
+                (byte) (newCalibrationOffset >> 16),
+                (byte) (newCalibrationOffset >> 8),
+                (byte) (newCalibrationOffset),
+        };
+        return timestamp;
+    };
 
     //Write Tag with a Block to index
     private byte[] writeTag(byte[] cmd,byte index)
@@ -294,6 +214,7 @@ public class HandleTag {
         //Log.i("Tag data", "ack= " + bytesToHex(ack));
         return ack;
     }
+
     //Read Tag at Block no index
     private byte[] readTag(byte index) {
         byte[] cmd = new byte[]{
@@ -571,31 +492,38 @@ public class HandleTag {
     }
 
     public void startDevice(Tag tag, String numberPasses, String FrequencyString, int cic) {
+        setCalibrationOffset(tag, 42);//getNewCalibrationOffset(42, 500));
+        Log.i("cali offset", "offset= " + getSetCalibrationOffset());
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegister(numberPasses);
-        SetMissionTimestamp(tag);
-        writeBlock8(tag);
-        writeBlock2(tag, cic);
-        writeBlock0(tag, cic, frequencyRegister, passesRegister, 0);
+        SetMissionTimestamp(tag, GetCurrentUnixTime());
+        writeBlock((byte) 0x08, tag, cmdBlock8());
+        writeBlock((byte) 0x02, tag, cmdBlock2(cic));
+        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister,passesRegister, 0, cic));
         readTagData(tag);
     }
 
     public void stopDevice(Tag tag, int cic) {
-        writeBlock0(tag, cic, (byte) 0x0, (byte) 0x00, 1);
+        writeBlock((byte) 0x00, tag, cmdBlock0( (byte) 0x0, (byte) 0x00, 1, cic));
         readTagData(tag);
     }
 
-    private Calendar GetMissionTimestamp() {//from block 236
-        long UnixTime = ((block236[1]&0xff)<<24)|((block236[2]&0xff)<<16)|((block236[3]&0xff)<<8)|(block236[4]&0xff);
-        Log.i("UnixTime", "UnixTime= " + UnixTime);
+    private Calendar GetSetMissionTimestamp() {//from block 236
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(UnixTime * 1000);
+        calendar.setTimeInMillis(GetSetUnixTime() * 1000);
         return calendar;
     }
 
-    private void SetMissionTimestamp(Tag tag) {
-        long missionTimeStamp = System.currentTimeMillis() / 1000L;
-        writeBlock236(tag, missionTimeStamp);//Mission timestamp is written to sensor memory
+    private long GetCurrentUnixTime(){
+        return System.currentTimeMillis() / 1000L;
+    }
+
+    private void SetMissionTimestamp(Tag tag, long missionTimeStamp) {
+        writeBlock((byte)0xEC, tag, cmdBlock236(missionTimeStamp, getSetCalibrationOffset()));//Mission timestamp is written to sensor memory
+    }
+
+    private long GetSetUnixTime(){
+        return ((block236[1]&0xff)<<24)|((block236[2]&0xff)<<16)|((block236[3]&0xff)<<8)|(block236[4]&0xff);
     }
 
     public class DataPoint {
@@ -610,9 +538,27 @@ public class HandleTag {
 
     private double ConvertValue(byte loByte, byte hiByte) {
         int result = ((hiByte & 0xff)<<8)|(loByte & 0xff);//Internal temperature sensor: bit-Value
-        int calibrationOffset = ((block236[5] & 0xff) << 8)|(block236[6] & 0xff);
         //int calibrationOffset=-10937; //varies significantly for different devices, has to be calibrated
-        return (result-calibrationOffset)/35.7;
+        return (result-getSetCalibrationOffset())/35.7;
+    }
+
+    private long getNewCalibrationOffset(double calibrationTemp, double cyclinoValue){//actual temperature vs shown Temperature for 1-Point-Calibration
+        double calibrationTempRegister = 35.7* calibrationTemp;
+        double cyclinoValueRegister = 35.7*cyclinoValue+getSetCalibrationOffset();
+
+        long calibrationTempInt = Math.round(calibrationTempRegister);
+        long cyclinoValueInt = Math.round(cyclinoValueRegister);
+
+        long newCalibrationOffset = cyclinoValueInt - calibrationTempInt;
+        return getSetCalibrationOffset()+newCalibrationOffset;
+    }
+    private void setCalibrationOffset(Tag tag, long newCalibrationOffset){
+        writeBlock((byte) 0xEC, tag, cmdBlock236(GetSetUnixTime(), newCalibrationOffset));
+    }
+
+    private int getSetCalibrationOffset(){
+        //int calibrationOffset=-10937; //varies significantly for different devices, has to be calibrated
+        return ((block236[5] & 0xff) << 24)|((block236[6] & 0xff)<<16)|((block236[7] & 0xff)<<8)|(block236[8] & 0xff);
     }
 
     //parsing function
