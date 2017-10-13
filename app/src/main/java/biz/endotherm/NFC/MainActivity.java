@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
                     listView.setLayoutParams(lp);
                 }
 
-                adapter.setData(handleTag.getData());
+                adapter.setData(handleTag.GetData());
                 mHandler.postDelayed(this, 200);
             }
         };
@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(Tag... params) {
             Tag tag = params[0];
             handleTag.readTagData(tag);
-            adapter.setData(handleTag.getData());
+            adapter.setData(handleTag.GetData());
             missionStatus_val = handleTag.get_MissionStatus_val();
             anzahlMesswerte = handleTag.get_anzahl();
             gesetzteWiederholungen = handleTag.get_numberOfPasses();

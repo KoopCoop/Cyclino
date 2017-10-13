@@ -25,6 +25,9 @@ public class HandleTag {
     private NfcV nfcv_senseTag;
     private ArrayList<DataPoint> data;
 
+    private long firstTime=0; //mission start time in ms (Unix time)
+    private long lastTime=0; //mission end time in ms (Unix time)
+
     //Getter und Setter
     public String getText_val(){return text_val;}
     public String[] get_MissionStatus_val(){return missionStatus_val;}
@@ -64,9 +67,10 @@ public class HandleTag {
                 numberOfPasses = GetNumberOfPasses();
                 missionStatus_val = GetMissionStatus();
 
-
                 data.clear();
                 Calendar cal = GetSetMissionTimestamp();
+                firstTime = GetSetMissionTimestamp().getTimeInMillis();//Mission start time
+
                 int pagesToRead = (anzahlMesswerte + 3) / 4;
                 int sample = 0;
                 for (int i = 0; i < pagesToRead; i++) {
@@ -75,12 +79,14 @@ public class HandleTag {
                         if (sample++ < anzahlMesswerte) {
                             DataPoint dataPoint = new DataPoint();
                             dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2]);
-                            cal.add(Calendar.SECOND, (GetFrequencyms() / 1000));
+                            GetDataTime(cal, frequency_ms, anzahlMesswerte);
+                            //cal.add(Calendar.SECOND, (frequency_ms/ 1000));
                             dataPoint.date = cal.getTime();
                             data.add(dataPoint);
                         }
                     }
                 }
+                lastTime = cal.getTimeInMillis(); //mission end time
             }
         }
         try {
@@ -236,6 +242,15 @@ public class HandleTag {
         return reading;
     }
 
+    private Calendar GetDataTime(Calendar cal, int frequency, int anzahl){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
+        int lowerErrorFrequency=Math.round((lastTime-firstTime)/(anzahl-1));
+        if(anzahl<=10) {
+            cal.add(Calendar.MILLISECOND, frequency);
+        } else{
+            cal.add(Calendar.MILLISECOND, lowerErrorFrequency);
+        }
+        return cal;
+    }
 
     private void GetSampleCount() {
         byte[] idx=block8;
@@ -492,8 +507,8 @@ public class HandleTag {
     }
 
     public void startDevice(Tag tag, String numberPasses, String FrequencyString, int cic) {
-        setCalibrationOffset(tag, 42);//getNewCalibrationOffset(42, 500));
-        Log.i("cali offset", "offset= " + getSetCalibrationOffset());
+        setCalibrationOffset(tag, 42);//GetNewCalibrationOffset(42, 500));
+        Log.i("cali offset", "offset= " + GetSetCalibrationOffset());
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegister(numberPasses);
         SetMissionTimestamp(tag, GetCurrentUnixTime());
@@ -519,7 +534,7 @@ public class HandleTag {
     }
 
     private void SetMissionTimestamp(Tag tag, long missionTimeStamp) {
-        writeBlock((byte)0xEC, tag, cmdBlock236(missionTimeStamp, getSetCalibrationOffset()));//Mission timestamp is written to sensor memory
+        writeBlock((byte)0xEC, tag, cmdBlock236(missionTimeStamp, GetSetCalibrationOffset()));//Mission timestamp is written to sensor memory
     }
 
     private long GetSetUnixTime(){
@@ -531,7 +546,7 @@ public class HandleTag {
         public double temp;
     }
 
-    public DataPoint[] getData() {
+    public DataPoint[] GetData() {
         return data.toArray(new DataPoint[data.size()]);
     }
 
@@ -539,24 +554,26 @@ public class HandleTag {
     private double ConvertValue(byte loByte, byte hiByte) {
         int result = ((hiByte & 0xff)<<8)|(loByte & 0xff);//Internal temperature sensor: bit-Value
         //int calibrationOffset=-10937; //varies significantly for different devices, has to be calibrated
-        return (result-getSetCalibrationOffset())/35.7;
+        double temperature=(result-GetSetCalibrationOffset())/35.7;
+        double temperatureRounded=Math.round(temperature*20)/20;//for NFP temperature needs to be rounded to 0,05°C steps
+        return temperatureRounded;
     }
 
-    private long getNewCalibrationOffset(double calibrationTemp, double cyclinoValue){//actual temperature vs shown Temperature for 1-Point-Calibration
+    private long GetNewCalibrationOffset(double calibrationTemp, double cyclinoValue){//actual temperature vs shown Temperature for 1-Point-Calibration
         double calibrationTempRegister = 35.7* calibrationTemp;
-        double cyclinoValueRegister = 35.7*cyclinoValue+getSetCalibrationOffset();
+        double cyclinoValueRegister = 35.7*cyclinoValue+GetSetCalibrationOffset();
 
         long calibrationTempInt = Math.round(calibrationTempRegister);
         long cyclinoValueInt = Math.round(cyclinoValueRegister);
 
         long newCalibrationOffset = cyclinoValueInt - calibrationTempInt;
-        return getSetCalibrationOffset()+newCalibrationOffset;
+        return GetSetCalibrationOffset()+newCalibrationOffset;
     }
     private void setCalibrationOffset(Tag tag, long newCalibrationOffset){
         writeBlock((byte) 0xEC, tag, cmdBlock236(GetSetUnixTime(), newCalibrationOffset));
     }
 
-    private int getSetCalibrationOffset(){
+    private int GetSetCalibrationOffset(){
         //int calibrationOffset=-10937; //varies significantly for different devices, has to be calibrated
         return ((block236[5] & 0xff) << 24)|((block236[6] & 0xff)<<16)|((block236[7] & 0xff)<<8)|(block236[8] & 0xff);
     }
