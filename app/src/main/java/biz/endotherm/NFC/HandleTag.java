@@ -69,7 +69,8 @@ public class HandleTag {
 
                 data.clear();
                 Calendar cal = GetSetMissionTimestamp();
-                firstTime = GetSetMissionTimestamp().getTimeInMillis();//Mission start time
+                firstTime = cal.getTimeInMillis();//Mission start time
+                lastTime = GetCurrentUnixTime()*1000;
 
                 int pagesToRead = (anzahlMesswerte + 3) / 4;
                 int sample = 0;
@@ -86,7 +87,6 @@ public class HandleTag {
                         }
                     }
                 }
-                lastTime = cal.getTimeInMillis(); //mission end time
             }
         }
         try {
@@ -171,14 +171,14 @@ public class HandleTag {
 
     private byte[] cmdBlock8(){
         byte[] cmd = new byte[]{
-                (byte) 0x03,
-                (byte) 0x8C,//Table128: a maximum of 912 samples is possible. With 908 there is still space for user data
+                (byte) 0x8C, //Table128
+                (byte) 0x03,//Table128: a maximum of 912 samples is possible. With 908 there is still space for user data
                 (byte) 0x00, //Table131
                 (byte) 0x00, //Table131
                 (byte) 0x00, //Table133
                 (byte) 0x00, //Table133
-                (byte) 0xA3, //Table135
                 (byte) 0xA6, //Table135
+                (byte) 0xA3, //Table135
         };
         return cmd;
     }
@@ -243,11 +243,11 @@ public class HandleTag {
     }
 
     private Calendar GetDataTime(Calendar cal, int frequency, int anzahl){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
-        int lowerErrorFrequency=Math.round((lastTime-firstTime)/(anzahl-1));
-        if(anzahl<=10) {
-            cal.add(Calendar.MILLISECOND, frequency);
-        } else{
+        if(anzahl>10 & anzahl!=numberOfPasses) {
+            int lowerErrorFrequency=Math.round((lastTime-firstTime)/(anzahl-1));
             cal.add(Calendar.MILLISECOND, lowerErrorFrequency);
+        } else{
+            cal.add(Calendar.MILLISECOND, frequency);
         }
         return cal;
     }
@@ -507,8 +507,8 @@ public class HandleTag {
     }
 
     public void startDevice(Tag tag, String numberPasses, String FrequencyString, int cic) {
-        setCalibrationOffset(tag, 42);//GetNewCalibrationOffset(42, 500));
-        Log.i("cali offset", "offset= " + GetSetCalibrationOffset());
+        //setCalibrationOffset(tag, GetNewCalibrationOffset(42, 500));
+        //Log.i("cali offset", "offset= " + GetSetCalibrationOffset());
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegister(numberPasses);
         SetMissionTimestamp(tag, GetCurrentUnixTime());
@@ -555,7 +555,7 @@ public class HandleTag {
         int result = ((hiByte & 0xff)<<8)|(loByte & 0xff);//Internal temperature sensor: bit-Value
         //int calibrationOffset=-10937; //varies significantly for different devices, has to be calibrated
         double temperature=(result-GetSetCalibrationOffset())/35.7;
-        double temperatureRounded=Math.round(temperature*20)/20;//for NFP temperature needs to be rounded to 0,05°C steps
+        double temperatureRounded=Math.round(temperature*20.)/20.;//for NFP temperature needs to be rounded to 0,05°C steps
         return temperatureRounded;
     }
 
