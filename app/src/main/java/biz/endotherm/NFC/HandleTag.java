@@ -441,7 +441,7 @@ public class HandleTag {
             numberPasses = Integer.parseInt(numberPassesString);
         }
         int frequencyByte = GetFrequencyByteFromString(FrequencyString);
-        return (((numberPasses & 0x700) << 3) | (frequencyByte));//Table 45, first three bits are the most significant bits of (11 bit) number of passes
+        return (((numberPasses & 0x700) >> 3) | (frequencyByte & 0xff));//Table 45, first three bits are the most significant bits of (11 bit) number of passes
     }
 
     private int GetFrequencyByteFromString(String Frequenz) {
@@ -500,9 +500,9 @@ public class HandleTag {
     }
 
     private int GetNumberOfPassesFromRegister() {
-        byte numberPassesRegisterByteMost = block0[4];
-        byte numberPassesRegisterByteLeast= block0[5];
-        return (((numberPassesRegisterByteMost & 0xE0) >> 3) | (numberPassesRegisterByteLeast & 0xff));
+        int numberPassesRegisterByteMost = block0[4];
+        int numberPassesRegisterByteLeast= block0[5];
+        return  (((numberPassesRegisterByteMost & 0xE0) << 3) | (numberPassesRegisterByteLeast & 0xff));
     }
 
     public void startDevice(Tag tag, String numberPasses, String FrequencyString, int cic) {
