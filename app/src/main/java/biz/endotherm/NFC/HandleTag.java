@@ -21,7 +21,7 @@ public class HandleTag {
     private byte[] block236={0,0,0,0,0,0,0,0};
     //private byte[] cmd;
     private int anzahlMesswerte;
-    private int numberOfPasses;
+    private int numberOfPassesFromRegister;
     private NfcV nfcv_senseTag;
     private ArrayList<DataPoint> data;
 
@@ -33,7 +33,7 @@ public class HandleTag {
     public String[] get_MissionStatus_val(){return missionStatus_val;}
     public String get_frequencyStringFromMs(){return frequencyStringFromMs;}
     public int get_anzahl(){return anzahlMesswerte;}
-    public int get_numberOfPasses(){return numberOfPasses;}
+    public int get_numberOfPasses(){return numberOfPassesFromRegister;}
 
     public HandleTag() {
         data = new ArrayList<>();
@@ -64,7 +64,7 @@ public class HandleTag {
                 GetSampleCount();
                 frequency_ms = GetFrequencyms();
                 frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
-                numberOfPasses = GetNumberOfPasses();
+                numberOfPassesFromRegister = GetNumberOfPassesFromRegister();
                 missionStatus_val = GetMissionStatus();
 
                 data.clear();
@@ -243,7 +243,7 @@ public class HandleTag {
     }
 
     private Calendar GetDataTime(Calendar cal, int frequency, int anzahl){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
-        if(anzahl>10 & anzahl!=numberOfPasses) {
+        if(anzahl>10 & anzahl!=numberOfPassesFromRegister) {
             int lowerErrorFrequency=Math.round((lastTime-firstTime)/(anzahl-1));
             cal.add(Calendar.MILLISECOND, lowerErrorFrequency);
         } else{
@@ -426,17 +426,16 @@ public class HandleTag {
         return frequencyStringFromMs;
     }
 
-    private int GetPassesRegister(String numberPassesString) {
+    private int GetPassesRegisterFromValue(String numberPassesString) {
         int numberPasses = 0;
         if (!numberPassesString.equals("")) {
             numberPasses = Integer.parseInt(numberPassesString);
         }
-        return numberPasses & 0xff; //number of passes, least significant byte, table 47
+        return numberPasses; //number of passes, least significant byte, table 47
     }
 
     private int GetFrequencyRegister(String FrequencyString, String numberPassesString) {
         int numberPasses = 0;
-        int frequency = 0;
 
         if (!numberPassesString.equals("")) {
             numberPasses = Integer.parseInt(numberPassesString);
@@ -500,7 +499,7 @@ public class HandleTag {
         return frequencyByte;
     }
 
-    private int GetNumberOfPasses() {
+    private int GetNumberOfPassesFromRegister() {
         byte numberPassesRegisterByteMost = block0[4];
         byte numberPassesRegisterByteLeast= block0[5];
         return (((numberPassesRegisterByteMost & 0xE0) >> 3) | (numberPassesRegisterByteLeast & 0xff));
@@ -510,7 +509,7 @@ public class HandleTag {
         //setCalibrationOffset(tag, GetNewCalibrationOffset(42, 500));
         //Log.i("cali offset", "offset= " + GetSetCalibrationOffset());
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
-        int passesRegister = GetPassesRegister(numberPasses);
+        int passesRegister = GetPassesRegisterFromValue(numberPasses);
         SetMissionTimestamp(tag, GetCurrentUnixTime());
         writeBlock((byte) 0x08, tag, cmdBlock8());
         writeBlock((byte) 0x02, tag, cmdBlock2(cic));

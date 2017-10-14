@@ -53,9 +53,9 @@ public class MainActivity extends AppCompatActivity {
     private Runnable mTimer;
 
     //display variables
-    String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="", frequencyStringFromMs="0", numberPasses="", missionTimeStamp="";
+    String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="", frequencyStringFromMs="0", numberPassesFromEdit="", missionTimeStamp="";
     int anzahlMesswerte = 0;
-    int gesetzteWiederholungen = 0;
+    int numberPassesFromRegister = 0;
     String gesetztesIntervall = "";
     int cic = 0;
     String[] missionStatus_val = {"","","","",""};
@@ -140,13 +140,13 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 missionStatus_val = handleTag.get_MissionStatus_val();
                 anzahlMesswerte = handleTag.get_anzahl();
-                gesetzteWiederholungen = handleTag.get_numberOfPasses();
+                numberPassesFromRegister = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 text_val=handleTag.getText_val();
 
                 text_view.setText(text_val);
                 anzahl.setText(String.valueOf(anzahlMesswerte));
-                istWiederholungen.setText(String.valueOf(gesetzteWiederholungen));
+                istWiederholungen.setText(String.valueOf(numberPassesFromRegister));
                 istIntervall.setText(frequencyStringFromMs);
                 missionStatus.setText(missionStatus_val[0]+missionStatus_val[1]+missionStatus_val[2]+missionStatus_val[3]+missionStatus_val[4]);
 
@@ -173,11 +173,11 @@ public class MainActivity extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                numberPasses = wiederholungen.getText().toString();
-                handleTag.startDevice(currentTag, numberPasses, frequencyFromSpinner, cic);
+                numberPassesFromEdit = wiederholungen.getText().toString();
+                handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, cic);
 
                 if(missionStatus_val[0]=="Sampling in Progress " /*&& handleTag.getText_val() !="Tag connection lost"*/) {
-                    startStopText.setText("Mission gestartet mit: " + numberPasses + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall");
+                    startStopText.setText("Mission gestartet mit: " + numberPassesFromEdit + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall");
                 } else {
                     startStopText.setText("Starten der Mission leider fehlgeschlagen ("+handleTag.getText_val()+" "+missionStatus_val[3]+missionStatus_val[4]+"). Bitte erneut probieren!");
                 }
@@ -185,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Button stopButton = (Button) findViewById(R.id.stopButton);
+
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -275,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
             adapter.setData(handleTag.GetData());
             missionStatus_val = handleTag.get_MissionStatus_val();
             anzahlMesswerte = handleTag.get_anzahl();
-            gesetzteWiederholungen = handleTag.get_numberOfPasses();
+            numberPassesFromRegister = handleTag.get_numberOfPasses();
             gesetztesIntervall = handleTag.get_frequencyStringFromMs();
             text_val = handleTag.getText_val();
             return null;

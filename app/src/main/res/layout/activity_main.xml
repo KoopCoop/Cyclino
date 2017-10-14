@@ -161,6 +161,7 @@
                 android:layout_row="1"
                 android:ems="8"
                 android:inputType="number"
+                android:text="908"
                 android:textColor="@android:color/black" />
 
         </GridLayout>
