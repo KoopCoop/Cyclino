@@ -219,7 +219,7 @@
                 android:text="Kalibration:" />
 
             <EditText
-                android:id="@+id/textView15"
+                android:id="@+id/calibrationTempEdit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
@@ -240,7 +240,7 @@
                 android:text="Cyclino Wert:" />
 
             <EditText
-                android:id="@+id/textView16"
+                android:id="@+id/cyclinoValueEdit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
@@ -248,7 +248,7 @@
                 tools:width="70dp" />
 
             <Button
-                android:id="@+id/button"
+                android:id="@+id/calibrationButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Setzen" />
@@ -273,7 +273,6 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
-                android:inputType="number"
                 android:textColor="@android:color/holo_blue_dark" />
         </LinearLayout>
 

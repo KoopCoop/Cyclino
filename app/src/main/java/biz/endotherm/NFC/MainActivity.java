@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     TextView istIntervall;
     TextView istWiederholungen;
     TextView startStopText;
+    TextView cyclinoValueEdit;
+    TextView calibrationTempEdit;
     ListView messwerteliste;
     Spinner frequenzSpinner;
 
@@ -53,13 +55,17 @@ public class MainActivity extends AppCompatActivity {
     private Runnable mTimer;
 
     //display variables
-    String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="", frequencyStringFromMs="0", numberPassesFromEdit="", missionTimeStamp="";
+    String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="", frequencyStringFromMs="0",
+            numberPassesFromEdit="", missionTimeStamp="";
     int anzahlMesswerte = 0;
     int numberPassesFromRegister = 0;
     String gesetztesIntervall = "";
     int cic = 0;
     String[] missionStatus_val = {"","","","",""};
     TempDataAdapter adapter;
+    long newCalibrationOffset=0;
+    double cyclinoValue = 0;
+    double calibrationTemp = 0;
 
 
     public final static String EXTRA_MESSAGE = "biz.endotherm.NFC.MESSAGE";
@@ -74,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
         wiederholungen = (TextView) findViewById(R.id.wiederholungen);
         istIntervall = (TextView) findViewById(R.id.istIntervall);
         istWiederholungen = (TextView) findViewById(R.id.istWiederholungen);
+        cyclinoValueEdit = (TextView) findViewById(R.id.cyclinoValueEdit);
+        calibrationTempEdit = (TextView) findViewById(R.id.calibrationTempEdit);
         startStopText = (TextView) findViewById(R.id.startStop);
 
         messwerteliste = (ListView) findViewById(R.id.messwerteList);
@@ -196,6 +204,22 @@ public class MainActivity extends AppCompatActivity {
                     startStopText.setText("Stoppen der Mission leider fehlgeschlagen ("+handleTag.getText_val()+") Bitte erneut probieren!");
                 }
 
+            }
+        });
+
+        Button calibrationButton = (Button) findViewById(R.id.calibrationButton);
+        calibrationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calibrationTemp = Double.parseDouble(calibrationTempEdit.getText().toString());
+                cyclinoValue = Double.parseDouble(cyclinoValueEdit.getText().toString());
+                newCalibrationOffset=handleTag.GetNewCalibrationOffset(calibrationTemp,cyclinoValue);
+                handleTag.setCalibrationOffset(currentTag, newCalibrationOffset);
+                if (handleTag.GetSetCalibrationOffset() == newCalibrationOffset){
+                    startStopText.setText("Neue Kalibration gesetzt");
+                } else{
+                    startStopText.setText("Setzen der Kalibration fehlgeschlagen");
+                }
             }
         });
 

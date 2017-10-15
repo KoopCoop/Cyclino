@@ -189,13 +189,13 @@ public class HandleTag {
                 (byte) (missionTimeStamp >> 16),
                 (byte) (missionTimeStamp >> 8),
                 (byte) (missionTimeStamp),
-                (byte) (newCalibrationOffset >> 24),
-                (byte) (newCalibrationOffset >> 16),
                 (byte) (newCalibrationOffset >> 8),
                 (byte) (newCalibrationOffset),
+                (byte) 0,
+                (byte) 0,
         };
         return timestamp;
-    };
+    }
 
     //Write Tag with a Block to index
     private byte[] writeTag(byte[] cmd,byte index)
@@ -257,7 +257,6 @@ public class HandleTag {
         byte index=idx[5]; //Table133   2 Bytes
         byte index2=idx[4];
         anzahlMesswerte = ((index2 & 0xff) >> 8) | ((index & 0xff) );//testen: ohne int davor
-        return;
     }
 
     private String[] GetMissionStatus() {//table 41 doesn't quite do what I expect
@@ -506,8 +505,6 @@ public class HandleTag {
     }
 
     public void startDevice(Tag tag, String numberPasses, String FrequencyString, int cic) {
-        //setCalibrationOffset(tag, GetNewCalibrationOffset(42, 500));
-        //Log.i("cali offset", "offset= " + GetSetCalibrationOffset());
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegisterFromValue(numberPasses);
         SetMissionTimestamp(tag, GetCurrentUnixTime());
@@ -558,9 +555,9 @@ public class HandleTag {
         return temperatureRounded;
     }
 
-    private long GetNewCalibrationOffset(double calibrationTemp, double cyclinoValue){//actual temperature vs shown Temperature for 1-Point-Calibration
+    public long GetNewCalibrationOffset(double calibrationTemp, double cyclinoValue){//actual temperature vs shown Temperature for 1-Point-Calibration
         double calibrationTempRegister = 35.7* calibrationTemp;
-        double cyclinoValueRegister = 35.7*cyclinoValue+GetSetCalibrationOffset();
+        double cyclinoValueRegister = 35.7*cyclinoValue;
 
         long calibrationTempInt = Math.round(calibrationTempRegister);
         long cyclinoValueInt = Math.round(cyclinoValueRegister);
@@ -568,13 +565,14 @@ public class HandleTag {
         long newCalibrationOffset = cyclinoValueInt - calibrationTempInt;
         return GetSetCalibrationOffset()+newCalibrationOffset;
     }
-    private void setCalibrationOffset(Tag tag, long newCalibrationOffset){
+
+    public void setCalibrationOffset(Tag tag, long newCalibrationOffset){
         writeBlock((byte) 0xEC, tag, cmdBlock236(GetSetUnixTime(), newCalibrationOffset));
     }
 
-    private int GetSetCalibrationOffset(){
+    public int GetSetCalibrationOffset(){
         //int calibrationOffset=-10937; //varies significantly for different devices, has to be calibrated
-        return ((block236[5] & 0xff) << 24)|((block236[6] & 0xff)<<16)|((block236[7] & 0xff)<<8)|(block236[8] & 0xff);
+        return ((block236[5] & 0xff) << 8)|(block236[6] & 0xff);
     }
 
     //parsing function
