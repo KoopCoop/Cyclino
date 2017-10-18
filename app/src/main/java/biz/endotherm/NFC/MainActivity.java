@@ -31,7 +31,7 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import org.w3c.dom.Text;
+//import org.w3c.dom.Text;
 
 import java.io.StringBufferInputStream;
 
@@ -186,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                 handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, cic);
 
 
-                if(missionStatus_val[0]=="Sampling in Progress " /*&& handleTag.getText_val() !="Tag connection lost"*/) {
+                if(missionStatus_val[0].equals("Sampling in Progress ") /*&& handleTag.getText_val() !="Tag connection lost"*/) {
                     startStopText.setText("Mission gestartet mit: " + numberPassesFromEdit + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall");
                 } else {
                     startStopText.setText("Starten der Mission leider fehlgeschlagen ("+handleTag.getText_val()+" "+missionStatus_val[3]+missionStatus_val[4]+"). Bitte erneut probieren!");
@@ -196,13 +196,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         final Button stopButton = (Button) findViewById(R.id.stopButton);
-        if(frequencyStringFromMs!="0") {stopButton.setVisibility(View.VISIBLE);}
+        if(!frequencyStringFromMs.equals("0")) {stopButton.setVisibility(View.VISIBLE);}
 
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 handleTag.stopDevice(currentTag, cic);
-                if(handleTag.get_numberOfPasses()==0 && handleTag.getText_val()!="Tag connection lost"){
+                if(handleTag.get_numberOfPasses()==0 && !handleTag.getText_val().equals("Tag connection lost")){
                     startStopText.setText("Mission gestoppt!");
                 } else{
                     startStopText.setText("Stoppen der Mission leider fehlgeschlagen ("+handleTag.getText_val()+") Bitte erneut probieren!");
@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 text_val=handleTag.getText_val();
 
-                if(handleTag.get_frequencyStringFromMs()!="0"){
+                if(!handleTag.get_frequencyStringFromMs().equals("0")){
                     startStopText.setText("Zum Starten/Stoppen einer Mission: Bitte Sollwerte editieren und Aktion auswählen");
                     startButton.setVisibility(View.VISIBLE);
                     stopButton.setVisibility(View.VISIBLE);
@@ -270,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    protected class TempDataAdapter extends BaseAdapter {
+    private class TempDataAdapter extends BaseAdapter {
         HandleTag.DataPoint[] data;
         Context context;
 
