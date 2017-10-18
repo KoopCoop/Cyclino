@@ -33,6 +33,20 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/AusleseButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Auslesen"
+                android:visibility="invisible" />
+        </LinearLayout>
+
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -181,14 +195,16 @@
                 android:layout_marginEnd="12dp"
                 android:layout_weight="1"
                 android:text="Stop"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:visibility="invisible" />
 
             <Button
                 android:id="@+id/startButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Start" />
+                android:text="Start"
+                android:visibility="invisible" />
 
         </LinearLayout>
 
@@ -202,12 +218,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Zum Starten/Stoppen einer Mission: Bitte Sollwerte editieren und Aktion auswählen"
-                android:textColor="@android:color/holo_red_dark" />
+                android:text="Bitte Sensor erneut scannen!"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="visible" />
 
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/kalibration"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
@@ -251,7 +269,8 @@
                 android:id="@+id/calibrationButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Setzen" />
+                android:text="Setzen"
+                android:visibility="invisible" />
 
         </LinearLayout>
 

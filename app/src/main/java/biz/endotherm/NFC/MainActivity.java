@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
     //display variables
     String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="", frequencyStringFromMs="0",
-            numberPassesFromEdit="", missionTimeStamp="";
+            numberPassesFromEdit="";
     int anzahlMesswerte = 0;
     int numberPassesFromRegister = 0;
     String gesetztesIntervall = "";
@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         adapter = new TempDataAdapter(this);
 
         nfc = NfcAdapter.getDefaultAdapter(this);
@@ -112,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
         }
         mpendingIntent = PendingIntent.getActivity(
                 this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+
     }
 
     @Override
@@ -143,9 +145,10 @@ public class MainActivity extends AppCompatActivity {
             nfc.enableForegroundDispatch(this, mpendingIntent, intentFiltersArray, techListsArray);
         }
 
-        mTimer = new Runnable() {
+        final Button ausleseButton = (Button) findViewById(R.id.AusleseButton);
+        ausleseButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void run() {
+            public void onClick(View v) {
                 missionStatus_val = handleTag.get_MissionStatus_val();
                 anzahlMesswerte = handleTag.get_anzahl();
                 numberPassesFromRegister = handleTag.get_numberOfPasses();
@@ -170,44 +173,45 @@ public class MainActivity extends AppCompatActivity {
                             * adapter.getCount();
                     listView.setLayoutParams(lp);
                 }
-
                 adapter.setData(handleTag.GetData());
-                mHandler.postDelayed(this, 200);
-            }
-        };
-        mHandler.postDelayed(mTimer, 300);
 
-        Button startButton = (Button) findViewById(R.id.startButton);
+            }
+        });
+
+        final Button startButton = (Button) findViewById(R.id.startButton);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 numberPassesFromEdit = wiederholungen.getText().toString();
                 handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, cic);
 
+
                 if(missionStatus_val[0]=="Sampling in Progress " /*&& handleTag.getText_val() !="Tag connection lost"*/) {
                     startStopText.setText("Mission gestartet mit: " + numberPassesFromEdit + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall");
                 } else {
                     startStopText.setText("Starten der Mission leider fehlgeschlagen ("+handleTag.getText_val()+" "+missionStatus_val[3]+missionStatus_val[4]+"). Bitte erneut probieren!");
                 }
+                ausleseButton.callOnClick();
             }
         });
 
-        Button stopButton = (Button) findViewById(R.id.stopButton);
+        final Button stopButton = (Button) findViewById(R.id.stopButton);
+        if(frequencyStringFromMs!="0") {stopButton.setVisibility(View.VISIBLE);}
 
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 handleTag.stopDevice(currentTag, cic);
                 if(handleTag.get_numberOfPasses()==0 && handleTag.getText_val()!="Tag connection lost"){
-                startStopText.setText("Mission gestoppt!");
+                    startStopText.setText("Mission gestoppt!");
                 } else{
                     startStopText.setText("Stoppen der Mission leider fehlgeschlagen ("+handleTag.getText_val()+") Bitte erneut probieren!");
                 }
-
+                ausleseButton.callOnClick();
             }
         });
 
-        Button calibrationButton = (Button) findViewById(R.id.calibrationButton);
+        final Button calibrationButton = (Button) findViewById(R.id.calibrationButton);
         calibrationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -222,6 +226,47 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        mTimer = new Runnable() {
+            @Override
+            public void run() {
+                missionStatus_val = handleTag.get_MissionStatus_val();
+                anzahlMesswerte = handleTag.get_anzahl();
+                numberPassesFromRegister = handleTag.get_numberOfPasses();
+                frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
+                text_val=handleTag.getText_val();
+
+                if(handleTag.get_frequencyStringFromMs()!="0"){
+                    startStopText.setText("Zum Starten/Stoppen einer Mission: Bitte Sollwerte editieren und Aktion auswählen");
+                    startButton.setVisibility(View.VISIBLE);
+                    stopButton.setVisibility(View.VISIBLE);
+                    ausleseButton.setVisibility(View.VISIBLE);
+                    calibrationButton.setVisibility(View.VISIBLE);
+                }
+                text_view.setText(text_val);
+                anzahl.setText(String.valueOf(anzahlMesswerte));
+                istWiederholungen.setText(String.valueOf(numberPassesFromRegister));
+                istIntervall.setText(frequencyStringFromMs);
+                missionStatus.setText(missionStatus_val[0]+missionStatus_val[1]+missionStatus_val[2]+missionStatus_val[3]+missionStatus_val[4]);
+
+                /*ListView listView = (ListView) findViewById(R.id.messwerteList);
+                listView.setAdapter(adapter);
+                // prevent listview from scrolling
+                if (adapter.getCount()>0) {
+                    View item = adapter.getView(0, null, listView);
+                    item.measure(0, 0);
+                    ViewGroup.LayoutParams lp = listView.getLayoutParams();
+                    lp.height = (item.getMeasuredHeight() + listView.getDividerHeight())
+                            * adapter.getCount();
+                    listView.setLayoutParams(lp);
+                }
+
+                adapter.setData(handleTag.GetData());*/
+
+                mHandler.postDelayed(this, 50);
+            }
+        };
+        mHandler.postDelayed(mTimer, 100);
 
     }
 

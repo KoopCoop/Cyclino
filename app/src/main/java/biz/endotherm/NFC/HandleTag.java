@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class HandleTag {
     private String text_val;
-    private String[] missionStatus_val={"Bitte Sensor scannen!", "","","",""};
+    private String[] missionStatus_val={"", "","","",""};
     private String frequencyStringFromMs="0";
     private int frequency_ms=0;
     private byte[] block0={0,0,0,0,0,0,0,0};
@@ -50,7 +50,7 @@ public class HandleTag {
 
                 try {
                     nfcv_senseTag.connect();
-                    text_val = "Tag connected";
+                    text_val = "Tag connected, wait for result!";
                 } catch (IOException e) {
                     text_val = "Tag connection lost";
                     return;
