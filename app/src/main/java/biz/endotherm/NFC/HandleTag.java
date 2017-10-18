@@ -256,7 +256,7 @@ public class HandleTag {
         byte[] idx=block8;
         byte index=idx[5]; //Table133   2 Bytes
         byte index2=idx[4];
-        anzahlMesswerte = ((index2 & 0xff) >> 8) | ((index & 0xff) );//testen: ohne int davor
+        anzahlMesswerte = ((index2 & 0xff) << 8) | ((index & 0xff) );//testen: ohne int davor
     }
 
     private String[] GetMissionStatus() {//table 41 doesn't quite do what I expect
