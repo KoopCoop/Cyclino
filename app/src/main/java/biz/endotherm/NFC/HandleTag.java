@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.lang.Math;
 
-
 import java.io.IOException;
 
 public class HandleTag {
@@ -80,8 +79,9 @@ public class HandleTag {
                         if (sample++ < anzahlMesswerte) {
                             DataPoint dataPoint = new DataPoint();
                             dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2]);
-                            GetDataTime(cal, frequency_ms, anzahlMesswerte);
-                            //cal.add(Calendar.SECOND, (frequency_ms/ 1000));
+                            if(sample!=1) {
+                                GetDataTime(cal, frequency_ms, anzahlMesswerte);
+                            }
                             dataPoint.date = cal.getTime();
                             data.add(dataPoint);
                         }

@@ -31,7 +31,7 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-//import org.w3c.dom.Text;
+import org.w3c.dom.Text;
 
 import java.io.StringBufferInputStream;
 
