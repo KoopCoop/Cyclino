@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     startStopText.setText("Starten der Mission leider fehlgeschlagen ("+handleTag.getText_val()+" "+missionStatus_val[3]+missionStatus_val[4]+"). Bitte erneut probieren!");
                 }
-                ausleseButton.callOnClick();
+                //ausleseButton.callOnClick();
             }
         });
 
@@ -237,7 +237,9 @@ public class MainActivity extends AppCompatActivity {
                 text_val=handleTag.getText_val();
 
                 if(!handleTag.get_frequencyStringFromMs().equals("0")){
-                    startStopText.setText("Zum Starten/Stoppen einer Mission: Bitte Sollwerte editieren und Aktion auswählen");
+                    if (startStopText.getText().equals("Bitte Sensor erneut scannen!") | startStopText.getText().equals("Zum Starten/Stoppen einer Mission: Bitte Sollwerte editieren und Aktion auswählen")) {
+                        startStopText.setText("Zum Starten/Stoppen einer Mission: Bitte Sollwerte editieren und Aktion auswählen");
+                    }
                     startButton.setVisibility(View.VISIBLE);
                     stopButton.setVisibility(View.VISIBLE);
                     ausleseButton.setVisibility(View.VISIBLE);
