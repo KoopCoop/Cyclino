@@ -70,7 +70,7 @@ public class HandleTag {
                 Calendar cal = GetSetMissionTimestamp();
                 firstTime = cal.getTimeInMillis();//Mission start time
                 lastTime = GetCurrentUnixTime()*1000;
-                if(anzahlMesswerte>908){
+                if(anzahlMesswerte>908){//default of factory fresh chips is bigger
                     anzahlMesswerte=0;
                 }
                 int pagesToRead = (anzahlMesswerte + 3) / 4;
