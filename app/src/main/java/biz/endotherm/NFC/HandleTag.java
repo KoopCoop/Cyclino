@@ -70,7 +70,9 @@ public class HandleTag {
                 Calendar cal = GetSetMissionTimestamp();
                 firstTime = cal.getTimeInMillis();//Mission start time
                 lastTime = GetCurrentUnixTime()*1000;
-
+                if(anzahlMesswerte>908){
+                    anzahlMesswerte=0;
+                }
                 int pagesToRead = (anzahlMesswerte + 3) / 4;
                 int sample = 0;
                 for (int i = 0; i < pagesToRead; i++) {
