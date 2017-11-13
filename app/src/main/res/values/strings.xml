@@ -2,16 +2,12 @@
     <string name="app_name">Cyclino</string>
 
     <string-array name="frequenzspinnerEintraege">
-        <item>10 min</item>
-        <item>250 ms</item>
-        <item>500 ms</item>
-        <item>1 s</item>
-        <item>5 s</item>
-        <item>15 s</item>
         <item>30 s</item>
         <item>1 min</item>
         <item>2 min</item>
         <item>5 min</item>
+        <item>10 min</item>
+        <item>20 min</item>
         <item>30 min</item>
         <item>1 h</item>
         <item>2 h</item>

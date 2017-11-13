@@ -65,6 +65,7 @@ public class HandleTag {
                 frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
                 numberOfPassesFromRegister = GetNumberOfPassesFromRegister();
                 missionStatus_val = GetMissionStatus();
+                int delay=GetMissionDelay();
 
                 data.clear();
                 Calendar cal = GetSetMissionTimestamp();
@@ -82,7 +83,7 @@ public class HandleTag {
                             DataPoint dataPoint = new DataPoint();
                             dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2]);
                             if(sample!=1) {
-                                GetDataTime(cal, frequency_ms, anzahlMesswerte);
+                                GetDataTime(cal, frequency_ms, anzahlMesswerte, delay);
                             }
                             dataPoint.date = cal.getTime();
                             data.add(dataPoint);
@@ -185,6 +186,20 @@ public class HandleTag {
         return cmd;
     }
 
+    private byte[] cmdBlock3(){
+        byte[] cmd = new byte[]{
+                (byte) 1200000 >> 24, //Table84, 1200000ms
+                (byte) 1200000 >> 16,//Table84
+                (byte) 1200000 >> 8, //Table84
+                (byte) 1200000, //Table84
+                (byte) 0x00, //Table87
+                (byte) 0x00, //Table87
+                (byte) 0x00, //Table89
+                (byte) 0x00, //Table89
+        };
+        return cmd;
+    }
+
     private byte[] cmdBlock236(long missionTimeStamp, long newCalibrationOffset){
         byte[] timestamp = new byte[]{
                 (byte) (missionTimeStamp >> 24),
@@ -244,7 +259,7 @@ public class HandleTag {
         return reading;
     }
 
-    private Calendar GetDataTime(Calendar cal, int frequency, int anzahl){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
+    private Calendar GetDataTime(Calendar cal, int frequency, int anzahl, int delay){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
         if(anzahl>10 & anzahl!=numberOfPassesFromRegister) {
             int lowerErrorFrequency=Math.round((lastTime-firstTime)/(anzahl-1));
             cal.add(Calendar.MILLISECOND, lowerErrorFrequency);
@@ -259,6 +274,10 @@ public class HandleTag {
         byte index=idx[5]; //Table133   2 Bytes
         byte index2=idx[4];
         anzahlMesswerte = ((index2 & 0xff) << 8) | ((index & 0xff) );//testen: ohne int davor
+    }
+
+    private int GetMissionDelay() {
+        return 0;
     }
 
     private String[] GetMissionStatus() {//table 41 doesn't quite do what I expect
@@ -318,7 +337,7 @@ public class HandleTag {
         int frequency = 0; //frequency in ms
 
         switch (frequencyIndex) {//custom time not supported
-            case 0:
+            /*case 0:
                 frequency = 250;
                 break;
             case 1:
@@ -332,7 +351,7 @@ public class HandleTag {
                 break;
             case 4:
                 frequency = 15000;
-                break;
+                break;*/
             case 5:
                 frequency = 30000;
                 break;
@@ -366,6 +385,8 @@ public class HandleTag {
             case 15:
                 frequency = 86400000;
                 break;
+            case 16:
+                frequency = 1200000;
         }
 
         return frequency;
@@ -374,7 +395,7 @@ public class HandleTag {
     private String GetFrequencyStringFromMs(int frequencyms){
         frequencyStringFromMs="";
         switch (frequencyms) {//custom time not supported
-            case 250:
+            /*case 250://with moving average measurements take about 16s with highest accuracy
                 frequencyStringFromMs = "250 ms";
                 break;
             case 500:
@@ -388,7 +409,7 @@ public class HandleTag {
                 break;
             case 15000:
                 frequencyStringFromMs = "15 s";
-                break;
+                break;*/
             case 30000:
                 frequencyStringFromMs = "30 s";
                 break;
@@ -403,6 +424,9 @@ public class HandleTag {
                 break;
             case 600000:
                 frequencyStringFromMs = "10 min";
+                break;
+            case 1200000:
+                frequencyStringFromMs = "20 min";
                 break;
             case 1800000:
                 frequencyStringFromMs = "30 min";
@@ -441,14 +465,14 @@ public class HandleTag {
         if (!numberPassesString.equals("")) {
             numberPasses = Integer.parseInt(numberPassesString);
         }
-        int frequencyByte = GetFrequencyByteFromString(FrequencyString);
+        int frequencyByte = GetFrequencyByteFromString(FrequencyString)[0];
         return (((numberPasses & 0x700) >> 3) | (frequencyByte & 0xff));//Table 45, first three bits are the most significant bits of (11 bit) number of passes
     }
 
-    private int GetFrequencyByteFromString(String Frequenz) {
-        int frequencyByte=0;
+    private int[] GetFrequencyByteFromString(String Frequenz) {
+        int[] frequencyByteArray={0,0};//first entry: frequency register byte, second entry: custom timer table 84
         switch (Frequenz) {
-            case "250 ms":
+            /*case "250 ms":
                 frequencyByte=0;
                 break;
             case "500 ms":
@@ -462,42 +486,46 @@ public class HandleTag {
                 break;
             case "15 s":
                 frequencyByte=4;
-                break;
+                break;*/
             case "30 s":
-                frequencyByte=5;
+                frequencyByteArray[0]=5;
                 break;
             case "1 min":
-                frequencyByte=6;
+                frequencyByteArray[0]=6;
                 break;
             case "2 min":
-                frequencyByte=7;
+                frequencyByteArray[0]=7;
                 break;
             case "5 min":
-                frequencyByte=8;
+                frequencyByteArray[0]=8;
                 break;
             case "10 min":
-                frequencyByte=9;
+                frequencyByteArray[0]=9;
                 break;
             case "30 min":
-                frequencyByte=10;
+                frequencyByteArray[0]=10;
                 break;
             case "1 h":
-                frequencyByte=11;
+                frequencyByteArray[0]=11;
                 break;
             case "2 h":
-                frequencyByte=12;
+                frequencyByteArray[0]=12;
                 break;
             case "5 h":
-                frequencyByte=13;
+                frequencyByteArray[0]=13;
                 break;
             case "10 h":
-                frequencyByte=14;
+                frequencyByteArray[0]=14;
                 break;
             case "24 h":
-                frequencyByte=15;
+                frequencyByteArray[0]=15;
+                break;
+            case "20 min":
+                frequencyByteArray[0]=16;
+                frequencyByteArray[1]=1200000;
                 break;
         }
-        return frequencyByte;
+        return frequencyByteArray;
     }
 
     private int GetNumberOfPassesFromRegister() {
@@ -512,6 +540,7 @@ public class HandleTag {
         SetMissionTimestamp(tag, GetCurrentUnixTime());
         writeBlock((byte) 0x08, tag, cmdBlock8());
         writeBlock((byte) 0x02, tag, cmdBlock2(cic));
+        writeBlock((byte) 0x03, tag, cmdBlock3());
         writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister,passesRegister, 0, cic));
         readTagData(tag);
     }
