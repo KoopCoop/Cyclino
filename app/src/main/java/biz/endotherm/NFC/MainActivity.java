@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     startStopText.setText("Starten der Mission leider fehlgeschlagen ("+handleTag.getText_val()+" "+missionStatus_val[3]+missionStatus_val[4]+"). Bitte erneut probieren!");
                 }
-                //ausleseButton.callOnClick();
+                ausleseButton.callOnClick();
             }
         });
 

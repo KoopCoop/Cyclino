@@ -20,11 +20,12 @@ public class HandleTag {
     private byte[] block236={0,0,0,0,0,0,0,0};
     //private byte[] cmd;
     private int anzahlMesswerte;
-    private int numberOfPassesFromRegister;
+    private int wantedDelay;
+    private int numberOfWantedPassesFromRegister;
     private NfcV nfcv_senseTag;
     private ArrayList<DataPoint> data;
 
-    private long firstTime=0; //mission start time in ms (Unix time)
+    private long firstMeasurementTime=0; //mission start time in ms (Unix time)
     private long lastTime=0; //mission end time in ms (Unix time)
 
     //Getter und Setter
@@ -32,7 +33,8 @@ public class HandleTag {
     public String[] get_MissionStatus_val(){return missionStatus_val;}
     public String get_frequencyStringFromMs(){return frequencyStringFromMs;}
     public int get_anzahl(){return anzahlMesswerte;}
-    public int get_numberOfPasses(){return numberOfPassesFromRegister;}
+    public int get_numberOfPasses(){return numberOfWantedPassesFromRegister;}
+    public int get_delayWanted(){return wantedDelay;}
 
     public HandleTag() {
         data = new ArrayList<>();
@@ -63,15 +65,15 @@ public class HandleTag {
                 GetSampleCount();
                 frequency_ms = GetFrequencyms();
                 frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
-                numberOfPassesFromRegister = GetNumberOfPassesFromRegister();
+                numberOfWantedPassesFromRegister = GetNumberOfPassesFromRegister();
                 missionStatus_val = GetMissionStatus();
-                int delay=GetMissionDelay();
 
                 data.clear();
                 Calendar cal = GetSetMissionTimestamp();
-                firstTime = cal.getTimeInMillis();//Mission start time
-                lastTime = GetCurrentUnixTime()*1000;
-                if(anzahlMesswerte>908){//default of factory fresh chips is bigger
+                lastTime = GetCurrentUnixTime()*1000;//current Time
+                long delay_ms=GetMissionDelay_ms();
+                firstMeasurementTime = cal.getTimeInMillis()+delay_ms;//Mission start time
+                if(anzahlMesswerte>908){//default for factory fresh chips is bigger
                     anzahlMesswerte=0;
                 }
                 int pagesToRead = (anzahlMesswerte + 3) / 4;
@@ -83,7 +85,7 @@ public class HandleTag {
                             DataPoint dataPoint = new DataPoint();
                             dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2]);
                             if(sample!=1) {
-                                GetDataTime(cal, frequency_ms, anzahlMesswerte, delay);
+                                GetNextDataTime(cal, frequency_ms, anzahlMesswerte);
                             }
                             dataPoint.date = cal.getTime();
                             data.add(dataPoint);
@@ -186,12 +188,12 @@ public class HandleTag {
         return cmd;
     }
 
-    private byte[] cmdBlock3(){
+    private byte[] cmdBlock3(long customTime){
         byte[] cmd = new byte[]{
-                (byte) 1200000 >> 24, //Table84, 1200000ms
-                (byte) 1200000 >> 16,//Table84
-                (byte) 1200000 >> 8, //Table84
-                (byte) 1200000, //Table84
+                (byte) (customTime), //Table84, 1200000ms
+                (byte) (customTime >> 8),//Table84
+                (byte) (customTime >> 16), //Table84
+                (byte) (customTime >> 24), //Table84
                 (byte) 0x00, //Table87
                 (byte) 0x00, //Table87
                 (byte) 0x00, //Table89
@@ -259,9 +261,9 @@ public class HandleTag {
         return reading;
     }
 
-    private Calendar GetDataTime(Calendar cal, int frequency, int anzahl, int delay){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
-        if(anzahl>10 & anzahl!=numberOfPassesFromRegister) {
-            int lowerErrorFrequency=Math.round((lastTime-firstTime)/(anzahl-1));
+    private Calendar GetNextDataTime(Calendar cal, int frequency, int anzahl){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
+        if(anzahl>10 & anzahl!=numberOfWantedPassesFromRegister) {
+            int lowerErrorFrequency=Math.round((lastTime-firstMeasurementTime)/(anzahl-1));
             cal.add(Calendar.MILLISECOND, lowerErrorFrequency);
         } else{
             cal.add(Calendar.MILLISECOND, frequency);
@@ -276,8 +278,23 @@ public class HandleTag {
         anzahlMesswerte = ((index2 & 0xff) << 8) | ((index & 0xff) );//testen: ohne int davor
     }
 
-    private int GetMissionDelay() {
-        return 0;
+    private long GetMissionDelay_ms() {
+        int delayFromRegister_ms=GetDelayFromRegister_ms();
+        long delay=0;
+        if(anzahlMesswerte>10 & anzahlMesswerte!=numberOfWantedPassesFromRegister) {
+            delay=(delayFromRegister_ms+(anzahlMesswerte-1)*GetFrequencyms())/(System.currentTimeMillis()-GetSetUnixTime()*1000)*delayFromRegister_ms;
+        } else{
+            delay=delayFromRegister_ms;
+        }
+        return delay;
+    }
+
+    private void SetDelayRegister(int delay_min){
+
+    }
+
+    private int GetDelayFromRegister_ms(){
+        return 60000;
     }
 
     private String[] GetMissionStatus() {//table 41 doesn't quite do what I expect
@@ -540,7 +557,7 @@ public class HandleTag {
         SetMissionTimestamp(tag, GetCurrentUnixTime());
         writeBlock((byte) 0x08, tag, cmdBlock8());
         writeBlock((byte) 0x02, tag, cmdBlock2(cic));
-        writeBlock((byte) 0x03, tag, cmdBlock3());
+        writeBlock((byte) 0x03, tag, cmdBlock3(GetFrequencyms()));
         writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister,passesRegister, 0, cic));
         readTagData(tag);
     }
