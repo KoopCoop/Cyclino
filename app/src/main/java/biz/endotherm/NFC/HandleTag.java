@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.lang.Math;
+import java.util.Date;
 
 import java.io.IOException;
 
@@ -16,12 +17,14 @@ public class HandleTag {
     private String frequencyStringFromMs="0";
     private int frequency_ms=0;
     private byte[] block0={0,0,0,0,0,0,0,0};
+    private byte[] block2={0,0,0,0,0,0,0,0};
     private byte[] block8={0,0,0,0,0,0,0,0};
     private byte[] block236={0,0,0,0,0,0,0,0};
     //private byte[] cmd;
-    private int anzahlMesswerte;
-    private int wantedDelay;
-    private int numberOfWantedPassesFromRegister;
+    private int currentMeasurementNumber;
+    private Calendar configuredMissionTimestamp=Calendar.getInstance();
+    private long delay_ms;
+    private int numberPassesConfigured;
     private NfcV nfcv_senseTag;
     private ArrayList<DataPoint> data;
 
@@ -32,10 +35,10 @@ public class HandleTag {
     public String getText_val(){return text_val;}
     public String[] get_MissionStatus_val(){return missionStatus_val;}
     public String get_frequencyStringFromMs(){return frequencyStringFromMs;}
-    public int get_anzahl(){return anzahlMesswerte;}
-    public int get_numberOfPasses(){return numberOfWantedPassesFromRegister;}
-    public int get_delayWanted(){return wantedDelay;}
-
+    public int get_anzahl(){return currentMeasurementNumber;}
+    public int get_numberOfPasses(){return numberPassesConfigured;}
+    public long get_configuredDelay_ms(){return delay_ms;}
+    public Calendar get_configuredMissionTimestamp(){return configuredMissionTimestamp;}
     public HandleTag() {
         data = new ArrayList<>();
     }
@@ -59,33 +62,39 @@ public class HandleTag {
 
                 block0 = readTag((byte) 0x0);
                 block8 = readTag((byte) 0x8);
-                block236 = readTag((byte) 0xEC);//Block contains Mission Timestamp and Calibration
+                block2 = readTag((byte) 0x2);
+                block236 = readTag((byte) 0xEC);//Block contains custom data: Mission Timestamp and Calibration
 
                 //Read Data at index of Data (Anzahl Daten)
                 GetSampleCount();
-                frequency_ms = GetFrequencyms();
+                frequency_ms = GetFrequency_ms();
                 frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
-                numberOfWantedPassesFromRegister = GetNumberOfPassesFromRegister();
+                numberPassesConfigured = GetNumberOfPassesFromRegister();
                 missionStatus_val = GetMissionStatus();
+                configuredMissionTimestamp=GetConfiguredMissionTimestamp();
+                delay_ms=GetConfiguredDelay_ms();
 
                 data.clear();
-                Calendar cal = GetSetMissionTimestamp();
-                lastTime = GetCurrentUnixTime()*1000;//current Time
-                long delay_ms=GetMissionDelay_ms();
-                firstMeasurementTime = cal.getTimeInMillis()+delay_ms;//Mission start time
-                if(anzahlMesswerte>908){//default for factory fresh chips is bigger
-                    anzahlMesswerte=0;
+
+                lastTime = GetCurrentUnixTime()*1000;//current time, approx. time of last measurement
+                Calendar cal = Calendar.getInstance();
+                cal.setTimeInMillis(GetSetUnixTime()*1000);
+                cal.add(Calendar.MILLISECOND, (int) delay_ms);//Mission start time
+                firstMeasurementTime=cal.getTimeInMillis();
+
+                if(currentMeasurementNumber>908){//default for factory fresh chips is bigger
+                    currentMeasurementNumber=0;
                 }
-                int pagesToRead = (anzahlMesswerte + 3) / 4;
+                int pagesToRead = (currentMeasurementNumber + 3) / 4;
                 int sample = 0;
                 for (int i = 0; i < pagesToRead; i++) {
                     byte[] buffer = readTag((byte) (0x09 + i));
                     for (int j = 0; j < 4; j++) {
-                        if (sample++ < anzahlMesswerte) {
+                        if (sample++ < currentMeasurementNumber) {
                             DataPoint dataPoint = new DataPoint();
                             dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2]);
                             if(sample!=1) {
-                                GetNextDataTime(cal, frequency_ms, anzahlMesswerte);
+                                GetNextDataTime(cal, frequency_ms, currentMeasurementNumber);
                             }
                             dataPoint.date = cal.getTime();
                             data.add(dataPoint);
@@ -155,7 +164,7 @@ public class HandleTag {
         return cmd;
     }
 
-    private byte[] cmdBlock2(int cic){
+    private byte[] cmdBlock2(int cic, long delay){
         byte[] cmd = new byte[]{
                 //(byte) 0x11, //Table 71 Reference-ADC1 Configuration Register DECIMATION 12 BIT
                 (byte) 0x40, //Table 71 Reference-ADC1 Configuration Register DECIMATION 12 BIT
@@ -164,10 +173,10 @@ public class HandleTag {
                 //(byte) 0x10, //Table 75 ADC0 Sensor Configuration Register
                 (byte) 0x40, //Table 75 ADC0 Sensor Configuration Register
                 (byte) 0x78,//Cic höchste Genauigkeit, //Table 77 Internal Sensor Configuration Register
-                (byte) 0x00, //Table 79 Initial Delay Period Setup Register
+                (byte) 0x01, //Table 79 Initial Delay Period Setup Register, nonzero enables delay
                 (byte) 0x00, //Table 81  JTAG Enable Password Register
-                (byte) 0x00, //Table 83 Initial Delay Period Register
-                (byte) 0x00, //Table 85 Initial Delay Period Register
+                (byte) delay, //Table 83 Initial Delay Period Register
+                (byte) (delay>>8), //Table 83 Initial Delay Period Register
         };
         if (cic == 0)
             cmd[3] = 0x5C; //höchste Genauigkeit für moving average
@@ -202,7 +211,7 @@ public class HandleTag {
         return cmd;
     }
 
-    private byte[] cmdBlock236(long missionTimeStamp, long newCalibrationOffset){
+    private byte[] cmdBlock236(long missionTimeStamp, long newCalibrationOffset, long delay_min){
         byte[] timestamp = new byte[]{
                 (byte) (missionTimeStamp >> 24),
                 (byte) (missionTimeStamp >> 16),
@@ -210,8 +219,8 @@ public class HandleTag {
                 (byte) (missionTimeStamp),
                 (byte) (newCalibrationOffset >> 8),
                 (byte) (newCalibrationOffset),
-                (byte) 0,
-                (byte) 0,
+                (byte) (delay_min),
+                (byte) (delay_min>>8),
         };
         return timestamp;
     }
@@ -262,7 +271,7 @@ public class HandleTag {
     }
 
     private Calendar GetNextDataTime(Calendar cal, int frequency, int anzahl){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
-        if(anzahl>10 & anzahl!=numberOfWantedPassesFromRegister) {
+        if(anzahl>10 & anzahl!=numberPassesConfigured) {
             int lowerErrorFrequency=Math.round((lastTime-firstMeasurementTime)/(anzahl-1));
             cal.add(Calendar.MILLISECOND, lowerErrorFrequency);
         } else{
@@ -275,26 +284,25 @@ public class HandleTag {
         byte[] idx=block8;
         byte index=idx[5]; //Table133   2 Bytes
         byte index2=idx[4];
-        anzahlMesswerte = ((index2 & 0xff) << 8) | ((index & 0xff) );//testen: ohne int davor
+        currentMeasurementNumber = ((index2 & 0xff) << 8) | ((index & 0xff) );
     }
 
-    private long GetMissionDelay_ms() {
-        int delayFromRegister_ms=GetDelayFromRegister_ms();
-        long delay=0;
-        if(anzahlMesswerte>10 & anzahlMesswerte!=numberOfWantedPassesFromRegister) {
-            delay=(delayFromRegister_ms+(anzahlMesswerte-1)*GetFrequencyms())/(System.currentTimeMillis()-GetSetUnixTime()*1000)*delayFromRegister_ms;
+    private long GetConfiguredDelay_ms() {
+        long delayFromRegister_ms=GetDelayFromRegister_ms();
+        if(currentMeasurementNumber>10 & currentMeasurementNumber!=numberPassesConfigured) {
+            delay_ms=(long)((delayFromRegister_ms+(currentMeasurementNumber-1.)*GetFrequency_ms())/(System.currentTimeMillis()-GetSetUnixTime()*1000.)*delayFromRegister_ms);
         } else{
-            delay=delayFromRegister_ms;
+            delay_ms=delayFromRegister_ms;
         }
-        return delay;
+        return delay_ms;
     }
 
-    private void SetDelayRegister(int delay_min){
-
-    }
-
-    private int GetDelayFromRegister_ms(){
-        return 60000;
+    private long GetDelayFromRegister_ms(){
+        byte[] idx=block236;
+        byte index=idx[8];//Table 83, 2 Bytes
+        byte index2=idx[7];
+        long delay_minutes = ((index & 0xff) << 8) | ((index2 & 0xff) );
+        return delay_minutes*60*1000;
     }
 
     private String[] GetMissionStatus() {//table 41 doesn't quite do what I expect
@@ -348,7 +356,7 @@ public class HandleTag {
         return missionstatus;
     }
 
-    private int GetFrequencyms() {
+    private int GetFrequency_ms() {
         byte frequencyRegisterByte = block0[4];
         int frequencyIndex = (frequencyRegisterByte & 0x1f);//((frequencyRegisterByte & 0xff) << 3);
         int frequency = 0; //frequency in ms
@@ -551,13 +559,13 @@ public class HandleTag {
         return  (((numberPassesRegisterByteMost & 0xE0) << 3) | (numberPassesRegisterByteLeast & 0xff));
     }
 
-    public void startDevice(Tag tag, String numberPasses, String FrequencyString, int cic) {
+    public void startDevice(Tag tag, String numberPasses, String FrequencyString, long wantedDelay_min, int cic) {
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegisterFromValue(numberPasses);
-        SetMissionTimestamp(tag, GetCurrentUnixTime());
+        SetMissionTimestamp(tag, GetCurrentUnixTime(), wantedDelay_min);
         writeBlock((byte) 0x08, tag, cmdBlock8());
-        writeBlock((byte) 0x02, tag, cmdBlock2(cic));
-        writeBlock((byte) 0x03, tag, cmdBlock3(GetFrequencyms()));
+        writeBlock((byte) 0x02, tag, cmdBlock2(cic, wantedDelay_min));
+        writeBlock((byte) 0x03, tag, cmdBlock3(GetFrequency_ms()));
         writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister,passesRegister, 0, cic));
         readTagData(tag);
     }
@@ -567,18 +575,17 @@ public class HandleTag {
         readTagData(tag);
     }
 
-    private Calendar GetSetMissionTimestamp() {//from block 236
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(GetSetUnixTime() * 1000);
-        return calendar;
+    private Calendar GetConfiguredMissionTimestamp() {//from block 236
+        configuredMissionTimestamp.setTimeInMillis(GetSetUnixTime() * 1000);
+        return configuredMissionTimestamp;
     }
 
     private long GetCurrentUnixTime(){
         return System.currentTimeMillis() / 1000L;
     }
 
-    private void SetMissionTimestamp(Tag tag, long missionTimeStamp) {
-        writeBlock((byte)0xEC, tag, cmdBlock236(missionTimeStamp, GetSetCalibrationOffset()));//Mission timestamp is written to sensor memory
+    private void SetMissionTimestamp(Tag tag, long missionTimeStamp, long delay_min) {
+        writeBlock((byte)0xEC, tag, cmdBlock236(missionTimeStamp, GetSetCalibrationOffset(),delay_min));//Mission timestamp is written to sensor memory
     }
 
     private long GetSetUnixTime(){
@@ -615,7 +622,7 @@ public class HandleTag {
     }
 
     public void setCalibrationOffset(Tag tag, long newCalibrationOffset){
-        writeBlock((byte) 0xEC, tag, cmdBlock236(GetSetUnixTime(), newCalibrationOffset));
+        writeBlock((byte) 0xEC, tag, cmdBlock236(GetSetUnixTime(), newCalibrationOffset,delay_ms/60/1000));
     }
 
     public int GetSetCalibrationOffset(){

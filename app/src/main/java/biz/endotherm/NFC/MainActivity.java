@@ -1,8 +1,12 @@
 package biz.endotherm.NFC;
 
 import java.text.DateFormat;
+import java.util.Date;
+import java.util.Calendar;
 
 import android.content.Intent;
+import android.widget.TimePicker;
+import android.widget.DatePicker;
 import android.app.PendingIntent;
 import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
@@ -38,14 +42,13 @@ import java.io.StringBufferInputStream;
 public class MainActivity extends AppCompatActivity {
 
     TextView text_view;
-    TextView anzahl;
     TextView wiederholungen;
     TextView missionStatus;
-    TextView istIntervall;
-    TextView istWiederholungen;
     TextView startStopText;
+    TextView calibrationText;
     TextView cyclinoValueEdit;
     TextView calibrationTempEdit;
+    TextView missionStatusText;
     ListView messwerteliste;
     Spinner frequenzSpinner;
 
@@ -57,8 +60,10 @@ public class MainActivity extends AppCompatActivity {
     //display variables
     String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="", frequencyStringFromMs="0",
             numberPassesFromEdit="";
-    int anzahlMesswerte = 0;
-    int numberPassesFromRegister = 0;
+    int currentMeasurementNumber = 0;
+    Calendar configuredMissionTimestamp;
+    long delay_ms=0;
+    int numberPassesConfigured = 0;
     String gesetztesIntervall = "";
     int cic = 0;
     String[] missionStatus_val = {"","","","",""};
@@ -76,13 +81,24 @@ public class MainActivity extends AppCompatActivity {
 
         text_view = (TextView) findViewById(R.id.textView);
         missionStatus = (TextView) findViewById(R.id.MissionStatusText);
-        anzahl = (TextView) findViewById(R.id.anzahl);
         wiederholungen = (TextView) findViewById(R.id.wiederholungen);
-        istIntervall = (TextView) findViewById(R.id.istIntervall);
-        istWiederholungen = (TextView) findViewById(R.id.istWiederholungen);
         cyclinoValueEdit = (TextView) findViewById(R.id.cyclinoValueEdit);
         calibrationTempEdit = (TextView) findViewById(R.id.calibrationTempEdit);
         startStopText = (TextView) findViewById(R.id.startStop);
+        calibrationText= (TextView) findViewById(R.id.calibrationText);
+        missionStatusText = (TextView) findViewById(R.id.missionStatus);
+
+        Date now = new Date();
+        long millisNow = now.getTime();
+
+        DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
+        TimePicker timePicker = (TimePicker) findViewById(R.id.startTimePicker);
+
+        timePicker.setIs24HourView(true);
+        datePicker.setCalendarViewShown(false);
+        timePicker.setCurrentHour(21);
+        timePicker.setCurrentMinute(0);
+
 
         messwerteliste = (ListView) findViewById(R.id.messwerteList);
         frequenzSpinner = (Spinner) findViewById(R.id.frequenzspinner);
@@ -150,15 +166,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 missionStatus_val = handleTag.get_MissionStatus_val();
-                anzahlMesswerte = handleTag.get_anzahl();
-                numberPassesFromRegister = handleTag.get_numberOfPasses();
+                currentMeasurementNumber = handleTag.get_anzahl();
+                numberPassesConfigured = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 text_val=handleTag.getText_val();
+                delay_ms=handleTag.get_configuredDelay_ms();
+                configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
+                handleTag.readTagData(currentTag);
 
                 text_view.setText(text_val);
-                anzahl.setText(String.valueOf(anzahlMesswerte));
-                istWiederholungen.setText(String.valueOf(numberPassesFromRegister));
-                istIntervall.setText(frequencyStringFromMs);
                 missionStatus.setText(missionStatus_val[0]+missionStatus_val[1]+missionStatus_val[2]+missionStatus_val[3]+missionStatus_val[4]);
 
 
@@ -183,15 +199,34 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 numberPassesFromEdit = wiederholungen.getText().toString();
-                handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, cic);
 
+                Date now = new Date();
+                long millisNow = now.getTime();
 
-                if(missionStatus_val[0].equals("Sampling in Progress ") /*&& handleTag.getText_val() !="Tag connection lost"*/) {
-                    startStopText.setText("Mission gestartet mit: " + numberPassesFromEdit + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall");
+                DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
+                TimePicker timePicker = (TimePicker) findViewById(R.id.startTimePicker);
+
+                int startYear = datePicker.getYear()-1900;
+                int startMonth = datePicker.getMonth();
+                int startDay = datePicker.getDayOfMonth();
+                int startHour = timePicker.getCurrentHour();
+                int startMinute = timePicker.getCurrentMinute();
+
+                Date missionStart = new Date(startYear, startMonth, startDay, startHour, startMinute);
+
+                long millisStart = missionStart.getTime();
+                long delay_min = (millisStart - millisNow) / 60000;
+                if(delay_min>=0) {
+                    handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
+
+                    if (missionStatus_val[0].equals("Sampling in Progress ") /*&& handleTag.getText_val() !="Tag connection lost"*/) {
+                        startStopText.setText("Mission gestartet mit: " + numberPassesFromEdit + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall, erster Messwert am " + getStartTimeString(System.currentTimeMillis(), delay_min * 60 * 1000));
+                    } else {
+                        startStopText.setText("Starten der Mission leider fehlgeschlagen (" + handleTag.getText_val() + " " + missionStatus_val[3] + missionStatus_val[4] + "). Bitte erneut probieren!");
+                    }
                 } else {
-                    startStopText.setText("Starten der Mission leider fehlgeschlagen ("+handleTag.getText_val()+" "+missionStatus_val[3]+missionStatus_val[4]+"). Bitte erneut probieren!");
+                    startStopText.setText("Der Missionsbeginn läge in der Vergangenheit. Bitte überdenken!");
                 }
-                ausleseButton.callOnClick();
             }
         });
 
@@ -219,10 +254,11 @@ public class MainActivity extends AppCompatActivity {
                 cyclinoValue = Double.parseDouble(cyclinoValueEdit.getText().toString());
                 newCalibrationOffset=handleTag.GetNewCalibrationOffset(calibrationTemp,cyclinoValue);
                 handleTag.setCalibrationOffset(currentTag, newCalibrationOffset);
+                ausleseButton.callOnClick();
                 if (handleTag.GetSetCalibrationOffset() == newCalibrationOffset){
-                    startStopText.setText("Neue Kalibration gesetzt");
+                    calibrationText.setText("Neue Kalibration gesetzt");
                 } else{
-                    startStopText.setText("Setzen der Kalibration fehlgeschlagen");
+                    calibrationText.setText("Setzen der Kalibration fehlgeschlagen");
                 }
             }
         });
@@ -231,24 +267,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 missionStatus_val = handleTag.get_MissionStatus_val();
-                anzahlMesswerte = handleTag.get_anzahl();
-                numberPassesFromRegister = handleTag.get_numberOfPasses();
+                currentMeasurementNumber = handleTag.get_anzahl();
+                numberPassesConfigured = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 text_val=handleTag.getText_val();
+                delay_ms=handleTag.get_configuredDelay_ms();
+                configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
+
 
                 if(!handleTag.get_frequencyStringFromMs().equals("0")){
-                    if (startStopText.getText().equals("Bitte Sensor erneut scannen!") | startStopText.getText().equals("Zum Starten/Stoppen einer Mission: Bitte Sollwerte editieren und Aktion auswählen")) {
-                        startStopText.setText("Zum Starten/Stoppen einer Mission: Bitte Sollwerte editieren und Aktion auswählen");
+                    if (startStopText.getText().equals("Bitte Sensor erneut scannen!") | startStopText.getText().equals("Zum Starten einer Mission: Gewünschte Parameter auswählen und Start-Button betätigen")) {
+                        startStopText.setText("Zum Starten einer Mission: Gewünschte Parameter auswählen und Start-Button betätigen");
                     }
-                    startButton.setVisibility(View.VISIBLE);
-                    stopButton.setVisibility(View.VISIBLE);
-                    ausleseButton.setVisibility(View.VISIBLE);
-                    calibrationButton.setVisibility(View.VISIBLE);
+                    if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
+                        missionStatusText.setText("Missionsstatus: " + currentMeasurementNumber + " von " + numberPassesConfigured + " Messwerten, " + frequencyStringFromMs + " Messintervall");
+                    }
+                    if (currentMeasurementNumber==0){
+                        missionStatusText.setText("Missionsstatus: " +currentMeasurementNumber+" Messwert(e) von " + numberPassesConfigured +". Erster Messwert am " + getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delay_ms)+ " mit " + frequencyStringFromMs + " Messintervall ");
+                    }
                 }
                 text_view.setText(text_val);
-                anzahl.setText(String.valueOf(anzahlMesswerte));
-                istWiederholungen.setText(String.valueOf(numberPassesFromRegister));
-                istIntervall.setText(frequencyStringFromMs);
                 missionStatus.setText(missionStatus_val[0]+missionStatus_val[1]+missionStatus_val[2]+missionStatus_val[3]+missionStatus_val[4]);
 
                 /*ListView listView = (ListView) findViewById(R.id.messwerteList);
@@ -346,13 +384,36 @@ public class MainActivity extends AppCompatActivity {
             handleTag.readTagData(tag);
             adapter.setData(handleTag.GetData());
             missionStatus_val = handleTag.get_MissionStatus_val();
-            anzahlMesswerte = handleTag.get_anzahl();
-            numberPassesFromRegister = handleTag.get_numberOfPasses();
+            currentMeasurementNumber = handleTag.get_anzahl();
+            numberPassesConfigured = handleTag.get_numberOfPasses();
             gesetztesIntervall = handleTag.get_frequencyStringFromMs();
+            configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
+            delay_ms=handleTag.get_configuredDelay_ms();
             text_val = handleTag.getText_val();
             return null;
         }
 
+    }
+    private String getStartTimeString(long unixTime_ms, long delay) {
+        String startTimeMinute;
+        String startTimeHour;
+        Calendar startTime = Calendar.getInstance();
+        startTime.setTimeInMillis(unixTime_ms + delay);
+        int startTimeMonth = startTime.get(Calendar.MONTH) + 1;
+        if(startTime.get(Calendar.MINUTE)<10){
+            startTimeMinute="0"+startTime.get(Calendar.MINUTE);
+        }
+        else {
+            startTimeMinute=""+startTime.get(Calendar.MINUTE);
+        }
+        if(startTime.get(Calendar.HOUR_OF_DAY)<10){
+            startTimeHour="0"+startTime.get(Calendar.HOUR_OF_DAY);
+        }
+        else {
+            startTimeHour=""+startTime.get(Calendar.HOUR_OF_DAY);
+        }
+        String startTimeString = startTime.get(Calendar.DAY_OF_MONTH) + "." + startTimeMonth + "." + startTime.get(Calendar.YEAR) + " " + startTimeHour + ":" + startTimeMinute;
+        return startTimeString;
     }
 
 }
