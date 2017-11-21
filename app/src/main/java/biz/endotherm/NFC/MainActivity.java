@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.Calendar;
 
 import android.content.Intent;
+import android.widget.TabWidget;
+import android.widget.TableLayout;
 import android.widget.TimePicker;
 import android.widget.DatePicker;
 import android.app.PendingIntent;
@@ -29,6 +31,8 @@ import android.nfc.tech.NfcV;
 import android.os.AsyncTask;
 import android.os.Handler;
 
+
+import android.widget.TabHost;
 import android.widget.AdapterView;
 
 import com.jjoe64.graphview.GraphView;
@@ -41,6 +45,7 @@ import java.io.StringBufferInputStream;
 
 public class MainActivity extends AppCompatActivity {
 
+    TabHost tabHost;
     TextView text_view;
     TextView wiederholungen;
     TextView missionStatus;
@@ -63,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     int currentMeasurementNumber = 0;
     Calendar configuredMissionTimestamp;
     long delay_ms=0;
+    long delayCountdown=0;
     int numberPassesConfigured = 0;
     String gesetztesIntervall = "";
     int cic = 0;
@@ -78,6 +84,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        TabHost host = (TabHost)findViewById(R.id.tabHost);
+        host.setup();
+
+        //Tab 1
+        TabHost.TabSpec spec = host.newTabSpec("Mission");
+        spec.setContent(R.id.Mission);
+        spec.setIndicator("Mission");
+        host.addTab(spec);
+
+        //Tab 2
+        spec = host.newTabSpec("Konfig");
+        spec.setContent(R.id.Konfig);
+        spec.setIndicator("Konfig");
+        host.addTab(spec);
+
+        //Tab 3
+        spec = host.newTabSpec("Kalibration");
+        spec.setContent(R.id.Kalibration);
+        spec.setIndicator("Kalibration");
+        host.addTab(spec);
 
         text_view = (TextView) findViewById(R.id.textView);
         missionStatus = (TextView) findViewById(R.id.MissionStatusText);
@@ -171,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 text_val=handleTag.getText_val();
                 delay_ms=handleTag.get_configuredDelay_ms();
+                delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
                 handleTag.readTagData(currentTag);
 
@@ -218,14 +246,16 @@ public class MainActivity extends AppCompatActivity {
                 long delay_min = (millisStart - millisNow) / 60000;
                 if(delay_min>=0) {
                     handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
+                    startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
 
-                    if (missionStatus_val[0].equals("Sampling in Progress ") /*&& handleTag.getText_val() !="Tag connection lost"*/) {
-                        startStopText.setText("Mission gestartet mit: " + numberPassesFromEdit + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall, erster Messwert am " + getStartTimeString(System.currentTimeMillis(), delay_min * 60 * 1000));
-                    } else {
-                        startStopText.setText("Starten der Mission leider fehlgeschlagen (" + handleTag.getText_val() + " " + missionStatus_val[3] + missionStatus_val[4] + "). Bitte erneut probieren!");
-                    }
+                    //if (missionStatus_val[0].equals("Sampling in Progress ") ) {
+                        //startStopText.setText("Zum Starten einer Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
+                    //    startStopText.setText("Mission gestartet mit: " + numberPassesFromEdit + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall, erster Messwert am " + getStartTimeString(System.currentTimeMillis(), delay_min * 60 * 1000)+" (noch "+delayCountdown+" Minuten)");
+                   // } else {
+                   //     startStopText.setText("Starten der Mission leider fehlgeschlagen (" + handleTag.getText_val() + " " + missionStatus_val[3] + missionStatus_val[4] + "). Bitte erneut probieren!");
+                   // }
                 } else {
-                    startStopText.setText("Der Missionsbeginn läge in der Vergangenheit. Bitte überdenken!");
+                    startStopText.setText("Der Missionsbeginn läge in der Vergangenheit. Bitte überdenken! Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
                 }
             }
         });
@@ -263,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         mTimer = new Runnable() {
             @Override
             public void run() {
@@ -272,18 +303,22 @@ public class MainActivity extends AppCompatActivity {
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 text_val=handleTag.getText_val();
                 delay_ms=handleTag.get_configuredDelay_ms();
+                delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
+
+                String startTimeConfigured=getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delay_ms);
+                String startTimeCountdown=getStartTimeString(System.currentTimeMillis(),delayCountdown*60*1000);
 
 
                 if(!handleTag.get_frequencyStringFromMs().equals("0")){
-                    if (startStopText.getText().equals("Bitte Sensor erneut scannen!") | startStopText.getText().equals("Zum Starten einer Mission: Gewünschte Parameter auswählen und Start-Button betätigen")) {
-                        startStopText.setText("Zum Starten einer Mission: Gewünschte Parameter auswählen und Start-Button betätigen");
+                    if (startStopText.getText().equals("Bitte Sensor erneut scannen!") | startStopText.getText().equals("Zum Starten einer neuen Mission: Gewünschte Parameter auswählen und Start-Button betätigen")) {
+                        startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
                     }
                     if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
                         missionStatusText.setText("Missionsstatus: " + currentMeasurementNumber + " von " + numberPassesConfigured + " Messwerten, " + frequencyStringFromMs + " Messintervall");
                     }
                     if (currentMeasurementNumber==0){
-                        missionStatusText.setText("Missionsstatus: " +currentMeasurementNumber+" Messwert(e) von " + numberPassesConfigured +". Erster Messwert am " + getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delay_ms)+ " mit " + frequencyStringFromMs + " Messintervall ");
+                        missionStatusText.setText("Missionsstatus: " +currentMeasurementNumber+" Messwert(e) von " + numberPassesConfigured +". Erster Messwert erwartet am " + startTimeCountdown+" (konfiguriert wurde "+startTimeConfigured+") " + " mit " + frequencyStringFromMs + " Messintervall ");
                     }
                 }
                 text_view.setText(text_val);

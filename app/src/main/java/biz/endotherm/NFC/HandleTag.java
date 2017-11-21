@@ -24,6 +24,7 @@ public class HandleTag {
     private int currentMeasurementNumber;
     private Calendar configuredMissionTimestamp=Calendar.getInstance();
     private long delay_ms;
+    private long delayCountdown;
     private int numberPassesConfigured;
     private NfcV nfcv_senseTag;
     private ArrayList<DataPoint> data;
@@ -38,6 +39,7 @@ public class HandleTag {
     public int get_anzahl(){return currentMeasurementNumber;}
     public int get_numberOfPasses(){return numberPassesConfigured;}
     public long get_configuredDelay_ms(){return delay_ms;}
+    public long get_delayCountdown(){return delayCountdown;}
     public Calendar get_configuredMissionTimestamp(){return configuredMissionTimestamp;}
     public HandleTag() {
         data = new ArrayList<>();
@@ -73,6 +75,7 @@ public class HandleTag {
                 missionStatus_val = GetMissionStatus();
                 configuredMissionTimestamp=GetConfiguredMissionTimestamp();
                 delay_ms=GetConfiguredDelay_ms();
+                delayCountdown=GetDelayCountdown();
 
                 data.clear();
 
@@ -295,6 +298,14 @@ public class HandleTag {
             delay_ms=delayFromRegister_ms;
         }
         return delay_ms;
+    }
+
+    private long GetDelayCountdown(){
+        byte[] idx=block2;
+        byte index=idx[8];//Table78 2 Bytes
+        byte index2=idx[7];
+        delayCountdown=((index & 0xff) << 8) | ((index2 & 0xff) );
+        return delayCountdown;
     }
 
     private long GetDelayFromRegister_ms(){
