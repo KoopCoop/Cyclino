@@ -1,10 +1,13 @@
 package biz.endotherm.NFC;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Calendar;
 
 import android.content.Intent;
+import android.os.Build;
+import android.widget.Switch;
 import android.widget.TabWidget;
 import android.widget.TableLayout;
 import android.widget.TimePicker;
@@ -171,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
         resolveIntent(intent);
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -200,7 +202,11 @@ public class MainActivity extends AppCompatActivity {
                 delay_ms=handleTag.get_configuredDelay_ms();
                 delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
-                handleTag.readTagData(currentTag);
+
+                Switch round = (Switch) findViewById(R.id.roundingSwitch);
+                boolean switchStatus = round.isChecked();
+
+                handleTag.readTagData(currentTag, switchStatus );
 
                 text_view.setText(text_val);
                 missionStatus.setText(missionStatus_val[0]+missionStatus_val[1]+missionStatus_val[2]+missionStatus_val[3]+missionStatus_val[4]);
@@ -218,6 +224,43 @@ public class MainActivity extends AppCompatActivity {
                     listView.setLayoutParams(lp);
                 }
                 adapter.setData(handleTag.GetData());
+
+            }
+        });
+
+
+        final Button clipboardButton = (Button) findViewById(R.id.ClipboardButton);
+        clipboardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String textToCopy = "";
+
+                for (int i = 0; i < currentMeasurementNumber; i++) {
+                    textToCopy = textToCopy + adapter.data[i].date.toString() + " " + String.format("%.5f", adapter.data[i].temp) +
+                            System.getProperty("line.separator");
+                }
+
+                if(textToCopy.length() != 0)
+                {
+                    if(Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) // check SDK version
+                    {
+                        android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        clipboard.setText(textToCopy);
+                        Toast.makeText(getApplicationContext(), "Daten in Zwischenablage kopiert", Toast.LENGTH_SHORT).show();
+                    }
+                    else
+                    {
+                        android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        android.content.ClipData clipData = android.content.ClipData.newPlainText("Clip",textToCopy);
+                        Toast.makeText(getApplicationContext(), "Daten in Zwischenablage kopiert", Toast.LENGTH_SHORT).show();
+                        clipboard.setPrimaryClip(clipData);
+                    }
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Keine Daten ausgewählt", Toast.LENGTH_SHORT).show();
+                }
 
             }
         });
@@ -266,13 +309,17 @@ public class MainActivity extends AppCompatActivity {
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                handleTag.stopDevice(currentTag, cic);
-                if(handleTag.get_numberOfPasses()==0 && !handleTag.getText_val().equals("Tag connection lost")){
+                if (currentTag == null) {
+                    startStopText.setText("Tag nicht verbunden!");
+                } else {
+                    handleTag.stopDevice(currentTag, cic);
+                if (handleTag.get_numberOfPasses() == 0 && !handleTag.getText_val().equals("Tag connection lost")) {
                     startStopText.setText("Mission gestoppt!");
-                } else{
-                    startStopText.setText("Stoppen der Mission leider fehlgeschlagen ("+handleTag.getText_val()+") Bitte erneut probieren!");
+                } else {
+                    startStopText.setText("Stoppen der Mission leider fehlgeschlagen (" + handleTag.getText_val() + ") Bitte erneut probieren!");
                 }
                 ausleseButton.callOnClick();
+            }
             }
         });
 
@@ -415,8 +462,13 @@ public class MainActivity extends AppCompatActivity {
         }
         @Override
         protected String doInBackground(Tag... params) {
+
             Tag tag = params[0];
-            handleTag.readTagData(tag);
+
+            Switch round = (Switch) findViewById(R.id.roundingSwitch);
+            boolean switchStatus = round.isChecked();
+
+            handleTag.readTagData(tag, switchStatus);
             adapter.setData(handleTag.GetData());
             missionStatus_val = handleTag.get_MissionStatus_val();
             currentMeasurementNumber = handleTag.get_anzahl();

@@ -56,7 +56,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:paddingLeft="20dp"
-                                android:text="Daten Status"
+                                android:text="Daten-Status"
                                 android:textAlignment="textEnd"
                                 android:textAppearance="@style/TextAppearance.AppCompat" />
 
@@ -88,24 +88,58 @@
                             android:visibility="visible">
 
                             <Button
-                                android:id="@+id/stopButton"
+                                android:id="@+id/ClipboardButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="12dp"
                                 android:layout_weight="1"
-                                android:text="Stop"
-                                android:textAlignment="center"
+                                android:text="Daten kopieren"
                                 android:visibility="visible" />
 
-                            <Button
-                                android:id="@+id/startButton"
+                            <Switch
+                                android:id="@+id/roundingSwitch"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Start"
+                                android:thumbTint = "#4169E1"
+                                android:trackTint ="#4682B4"
+                                android:showText="true"
+                                android:textOff="N"
+                                android:textOn="J"
+                                android:text = "Werte runden"
+                                android:thumbTextPadding = "0dp"
                                 android:visibility="visible" />
 
                         </LinearLayout>
+
+                    <LinearLayout
+                        style="@style/AppTheme"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingBottom="5dp"
+                        android:paddingTop="5dp"
+                        android:visibility="visible">
+
+                        <Button
+                            android:id="@+id/stopButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp"
+                            android:layout_weight="1"
+                            android:text="Stop"
+                            android:textAlignment="center"
+                            android:visibility="visible" />
+
+                        <Button
+                            android:id="@+id/startButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Start"
+                            android:visibility="visible" />
+
+                    </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -229,7 +263,7 @@
                                 android:id="@+id/calibrationTempEdit"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:inputType="numberSigned"
+                                android:inputType="numberDecimal|numberSigned"
                                 android:text=""
                                 tools:width="50dp" />
 
@@ -244,13 +278,13 @@
                                 android:id="@+id/textView14"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="entspricht Cyclino Wert:" />
+                                android:text="entspricht Cyclino-Wert:" />
 
                             <EditText
                                 android:id="@+id/cyclinoValueEdit"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:inputType="numberSigned"
+                                android:inputType="numberDecimal|numberSigned"
                                 android:text=""
                                 tools:width="70dp" />
 

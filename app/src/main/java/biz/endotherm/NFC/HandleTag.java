@@ -3,6 +3,8 @@ package biz.endotherm.NFC;
 import android.nfc.Tag;
 import android.nfc.tech.NfcV;
 import android.util.Log;
+import android.widget.Switch;
+
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -45,106 +47,116 @@ public class HandleTag {
         data = new ArrayList<>();
     }
     //read data
-    public void readTagData(Tag tag) {
-        byte[] id = tag.getId();
-        // checking for NfcV
-        for (String tech : tag.getTechList()) {
-            if (tech.equals(NfcV.class.getName())) {
+    public void readTagData(Tag tag, boolean roundTemp) {
+        if  (tag == null) {
+            text_val = "Tag not connected";
+            return;
+        }else {
+            byte[] id = tag.getId();
+            // checking for NfcV
+            for (String tech : tag.getTechList()) {
+                if (tech.equals(NfcV.class.getName())) {
 
-                // Get an instance of NfcV for the given tag:
-                nfcv_senseTag = NfcV.get(tag);
+                    // Get an instance of NfcV for the given tag:
+                    nfcv_senseTag = NfcV.get(tag);
 
-                try {
-                    nfcv_senseTag.connect();
-                    text_val = "Tag connected, wait for result!";
-                } catch (IOException e) {
-                    text_val = "Tag connection lost";
-                    return;
-                }
+                    try {
+                        nfcv_senseTag.connect();
+                        text_val = "Tag connected, wait for result!";
+                    } catch (IOException e) {
+                        text_val = "Tag connection lost";
+                        return;
+                    }
 
-                block0 = readTag((byte) 0x0);
-                block8 = readTag((byte) 0x8);
-                block2 = readTag((byte) 0x2);
-                block236 = readTag((byte) 0xEC);//Block contains custom data: Mission Timestamp and Calibration
+                    block0 = readTag((byte) 0x0);
+                    block8 = readTag((byte) 0x8);
+                    block2 = readTag((byte) 0x2);
+                    block236 = readTag((byte) 0xEC);//Block contains custom data: Mission Timestamp and Calibration
 
-                //Read Data at index of Data (Anzahl Daten)
-                GetSampleCount();
-                frequency_ms = GetFrequency_ms();
-                frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
-                numberPassesConfigured = GetNumberOfPassesFromRegister();
-                missionStatus_val = GetMissionStatus();
-                configuredMissionTimestamp=GetConfiguredMissionTimestamp();
-                delay_ms=GetConfiguredDelay_ms();
-                delayCountdown=GetDelayCountdown();
+                    //Read Data at index of Data (Anzahl Daten)
+                    GetSampleCount();
+                    frequency_ms = GetFrequency_ms();
+                    frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
+                    numberPassesConfigured = GetNumberOfPassesFromRegister();
+                    missionStatus_val = GetMissionStatus();
+                    configuredMissionTimestamp = GetConfiguredMissionTimestamp();
+                    delay_ms = GetConfiguredDelay_ms();
+                    delayCountdown = GetDelayCountdown();
 
-                data.clear();
+                    data.clear();
 
-                lastTime = GetCurrentUnixTime()*1000;//current time, approx. time of last measurement
-                Calendar cal = Calendar.getInstance();
-                cal.setTimeInMillis(GetSetUnixTime()*1000);
-                cal.add(Calendar.MILLISECOND, (int) delay_ms);//Mission start time
-                firstMeasurementTime=cal.getTimeInMillis();
+                    lastTime = GetCurrentUnixTime() * 1000;//current time, approx. time of last measurement
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTimeInMillis(GetSetUnixTime() * 1000);
+                    cal.add(Calendar.MILLISECOND, (int) delay_ms);//Mission start time
+                    firstMeasurementTime = cal.getTimeInMillis();
 
-                if(currentMeasurementNumber>908){//default for factory fresh chips is bigger
-                    currentMeasurementNumber=0;
-                }
-                int pagesToRead = (currentMeasurementNumber + 3) / 4;
-                int sample = 0;
-                for (int i = 0; i < pagesToRead; i++) {
-                    byte[] buffer = readTag((byte) (0x09 + i));
-                    for (int j = 0; j < 4; j++) {
-                        if (sample++ < currentMeasurementNumber) {
-                            DataPoint dataPoint = new DataPoint();
-                            dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2]);
-                            if(sample!=1) {
-                                GetNextDataTime(cal, frequency_ms, currentMeasurementNumber);
+                    if (currentMeasurementNumber > 908) {//default for factory fresh chips is bigger
+                        currentMeasurementNumber = 0;
+                    }
+                    int pagesToRead = (currentMeasurementNumber + 3) / 4;
+                    int sample = 0;
+                    for (int i = 0; i < pagesToRead; i++) {
+                        byte[] buffer = readTag((byte) (0x09 + i));
+                        for (int j = 0; j < 4; j++) {
+                            if (sample++ < currentMeasurementNumber) {
+                                DataPoint dataPoint = new DataPoint();
+                                dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2], roundTemp );
+                                if (sample != 1) {
+                                    GetNextDataTime(cal, frequency_ms, currentMeasurementNumber);
+                                }
+                                dataPoint.date = cal.getTime();
+                                data.add(dataPoint);
                             }
-                            dataPoint.date = cal.getTime();
-                            data.add(dataPoint);
                         }
                     }
                 }
             }
+            try {
+                nfcv_senseTag.close();
+            } catch (IOException e) {
+                Log.i("Tag data", "transceive failed and stopped");
+                text_val = "Tag disconnection failed";
+                return;
+            }
+            text_val = "Tag disconnected";
         }
-        try {
-            nfcv_senseTag.close();
-        } catch (IOException e) {
-            Log.i("Tag data", "transceive failed and stopped");
-            text_val = "Tag disconnection failed";
-            return;
-        }
-        text_val = "Tag disconnected";
     }
 
 
     private void writeBlock(byte block, Tag tag, byte[] cmd) {
-        byte[] id = tag.getId();
-        // checking for NfcV
-        for (String tech : tag.getTechList())
-            if (tech.equals(NfcV.class.getName())) {
+        if  (tag == null) {
+            text_val = "Tag not connected";
+            return;
+        }else {
+            byte[] id = tag.getId();
+            // checking for NfcV
+            for (String tech : tag.getTechList())
+                if (tech.equals(NfcV.class.getName())) {
 
-                // Get an instance of NfcV for the given tag:
-                nfcv_senseTag = NfcV.get(tag);
+                    // Get an instance of NfcV for the given tag:
+                    nfcv_senseTag = NfcV.get(tag);
 
-                try {
-                    nfcv_senseTag.connect();
-                    text_val = "Tag connected";
-                } catch (IOException e) {
-                    text_val = "Tag connection lost";
-                    return;
+                    try {
+                        nfcv_senseTag.connect();
+                        text_val = "Tag connected";
+                    } catch (IOException e) {
+                        text_val = "Tag connection lost";
+                        return;
+                    }
+                    byte[] ack = writeTag(cmd, block);
+
+                    Log.i("Tag data", "ack= " + bytesToHex(ack));
+                    try {
+                        nfcv_senseTag.close();
+                    } catch (IOException e) {
+                        Log.i("Tag data", "transceive failed and stopped");
+                        text_val = "Tag disconnection failed";
+                        return;
+                    }
+                    text_val = "Tag disconnected";
                 }
-                byte[] ack = writeTag(cmd, block);
-
-                Log.i("Tag data", "ack= " + bytesToHex(ack));
-                try {
-                    nfcv_senseTag.close();
-                } catch (IOException e) {
-                    Log.i("Tag data", "transceive failed and stopped");
-                    text_val = "Tag disconnection failed";
-                    return;
-                }
-                text_val = "Tag disconnected";
-            }
+        }
     }
 
     private byte[] cmdBlock0(int frequencyRegister, int passesRegister, int reset, int cic){
@@ -276,7 +288,14 @@ public class HandleTag {
     private Calendar GetNextDataTime(Calendar cal, int frequency, int anzahl){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
         if(anzahl>10 & anzahl!=numberPassesConfigured) {
             int lowerErrorFrequency=Math.round((lastTime-firstMeasurementTime)/(anzahl-1));
-            cal.add(Calendar.MILLISECOND, lowerErrorFrequency);
+            // check if lowerErrorFrequency differs from frequency (originally set) by more than 10%. That means the mission was unexpectedly stopped.
+            // In this case, lowerErrorFrequency shifts to more and more unrealistic (too large) values as lastTime equals the current system time. So we should use frequency instead.
+            double frequencyRatio = lowerErrorFrequency/frequency;
+            if(frequencyRatio >= 1.1){
+                cal.add(Calendar.MILLISECOND, frequency);
+            } else {
+                cal.add(Calendar.MILLISECOND, lowerErrorFrequency);
+            }
         } else{
             cal.add(Calendar.MILLISECOND, frequency);
         }
@@ -404,24 +423,27 @@ public class HandleTag {
                 frequency = 600000;
                 break;
             case 10:
-                frequency = 1800000;
+                frequency = 900000;
                 break;
             case 11:
-                frequency = 3600000;
+                frequency = 1800000;
                 break;
             case 12:
-                frequency = 7200000;
+                frequency = 3600000;
                 break;
             case 13:
-                frequency = 18000000;
+                frequency = 7200000;
                 break;
             case 14:
-                frequency = 36000000;
+                frequency = 18000000;
                 break;
             case 15:
-                frequency = 86400000;
+                frequency = 36000000;
                 break;
             case 16:
+                frequency = 86400000;
+                break;
+            case 17:
                 frequency = 1200000;
         }
 
@@ -460,6 +482,9 @@ public class HandleTag {
                 break;
             case 600000:
                 frequencyStringFromMs = "10 min";
+                break;
+            case 900000:
+                frequencyStringFromMs = "15 min";
                 break;
             case 1200000:
                 frequencyStringFromMs = "20 min";
@@ -538,26 +563,29 @@ public class HandleTag {
             case "10 min":
                 frequencyByteArray[0]=9;
                 break;
-            case "30 min":
+            case "15 min":
                 frequencyByteArray[0]=10;
                 break;
-            case "1 h":
+            case "30 min":
                 frequencyByteArray[0]=11;
                 break;
-            case "2 h":
+            case "1 h":
                 frequencyByteArray[0]=12;
                 break;
-            case "5 h":
+            case "2 h":
                 frequencyByteArray[0]=13;
                 break;
-            case "10 h":
+            case "5 h":
                 frequencyByteArray[0]=14;
                 break;
-            case "24 h":
+            case "10 h":
                 frequencyByteArray[0]=15;
                 break;
-            case "20 min":
+            case "24 h":
                 frequencyByteArray[0]=16;
+                break;
+            case "20 min":
+                frequencyByteArray[0]=17;
                 frequencyByteArray[1]=1200000;
                 break;
         }
@@ -578,12 +606,12 @@ public class HandleTag {
         writeBlock((byte) 0x02, tag, cmdBlock2(cic, wantedDelay_min));
         writeBlock((byte) 0x03, tag, cmdBlock3(GetFrequency_ms()));
         writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister,passesRegister, 0, cic));
-        readTagData(tag);
+        readTagData(tag, false);
     }
 
     public void stopDevice(Tag tag, int cic) {
         writeBlock((byte) 0x00, tag, cmdBlock0( (byte) 0x0, (byte) 0x00, 1, cic));
-        readTagData(tag);
+        readTagData(tag, false);
     }
 
     private Calendar GetConfiguredMissionTimestamp() {//from block 236
@@ -613,12 +641,19 @@ public class HandleTag {
     }
 
 
-    private double ConvertValue(byte loByte, byte hiByte) {
+    private double ConvertValue(byte loByte, byte hiByte, boolean roundTemp) {
+        double outputTemperature;
         int result = ((hiByte & 0xff)<<8)|(loByte & 0xff);//Internal temperature sensor: bit-Value
         //int calibrationOffset=-10937; //varies significantly for different devices, has to be calibrated
         double temperature=(result-GetSetCalibrationOffset())/35.7;
-        double temperatureRounded=Math.round(temperature*20.)/20.;//for NFP temperature needs to be rounded to 0,05°C steps
-        return temperatureRounded;
+        if (roundTemp) {
+            outputTemperature = Math.round(temperature * 20.) / 20.;//for NFP temperature needs to be rounded to 0,05°C steps
+        }else{
+            outputTemperature = temperature;
+        }
+        //double temperatureRounded=Math.round(temperature*20.)/20.;//for NFP temperature needs to be rounded to 0,05°C steps
+        //return temperatureRounded;
+        return outputTemperature;
     }
 
     public long GetNewCalibrationOffset(double calibrationTemp, double cyclinoValue){//actual temperature vs shown Temperature for 1-Point-Calibration
