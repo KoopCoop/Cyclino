@@ -7,4 +7,6 @@
 /build
 /captures
 .externalNativeBuild
-/app/build
+/app/build/generated
+/app/build/intermediates
+/app/build/outputs/logs
