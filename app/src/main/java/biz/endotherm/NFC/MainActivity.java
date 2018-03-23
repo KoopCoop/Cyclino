@@ -323,20 +323,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         final Button calibrationButton = (Button) findViewById(R.id.calibrationButton);
         calibrationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                calibrationTemp = Double.parseDouble(calibrationTempEdit.getText().toString());
-                cyclinoValue = Double.parseDouble(cyclinoValueEdit.getText().toString());
-                newCalibrationOffset=handleTag.GetNewCalibrationOffset(calibrationTemp,cyclinoValue);
-                handleTag.setCalibrationOffset(currentTag, newCalibrationOffset);
-                ausleseButton.callOnClick();
-                if (handleTag.GetSetCalibrationOffset() == newCalibrationOffset){
-                    calibrationText.setText("Neue Kalibration gesetzt");
-                } else{
-                    calibrationText.setText("Setzen der Kalibration fehlgeschlagen");
+                if (!(calibrationTempEdit.getText().toString()).equals("") & !(cyclinoValueEdit.getText().toString()).equals("")) {
+                    calibrationTemp = Double.parseDouble(calibrationTempEdit.getText().toString());
+                    cyclinoValue = Double.parseDouble(cyclinoValueEdit.getText().toString());
+
+                    newCalibrationOffset=handleTag.GetNewCalibrationOffset(calibrationTemp,cyclinoValue);
+                    handleTag.setCalibrationOffset(currentTag, newCalibrationOffset);
+                    ausleseButton.callOnClick();
+                    if (handleTag.GetSetCalibrationOffset() == newCalibrationOffset){
+                        calibrationText.setText("Neue Kalibration gesetzt");
+                    } else{
+                        calibrationText.setText("Setzen der Kalibration fehlgeschlagen");
+                    }
                 }
+                else{
+                    calibrationText.setText("Kalibration nicht möglich. Bitte gültige Kalibrationswerte eintragen!");
+                }
+
             }
         });
 
