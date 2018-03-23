@@ -62,9 +62,9 @@ public class HandleTag {
 
                     try {
                         nfcv_senseTag.connect();
-                        text_val = "Tag connected, wait for result!";
+                        text_val = "Sensor verbunden";
                     } catch (IOException e) {
-                        text_val = "Tag connection lost";
+                        text_val = "Verbindung zum Sensor verloren!";
                         return;
                     }
 
@@ -96,19 +96,25 @@ public class HandleTag {
                     }
                     int pagesToRead = (currentMeasurementNumber + 3) / 4;
                     int sample = 0;
-                    for (int i = 0; i < pagesToRead; i++) {
-                        byte[] buffer = readTag((byte) (0x09 + i));
-                        for (int j = 0; j < 4; j++) {
-                            if (sample++ < currentMeasurementNumber) {
-                                DataPoint dataPoint = new DataPoint();
-                                dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2], roundTemp );
-                                if (sample != 1) {
-                                    GetNextDataTime(cal, frequency_ms, currentMeasurementNumber);
+                    boolean timingCorrect = CheckIfMissionTimingIsCorrect(frequency_ms, currentMeasurementNumber);
+                    if (timingCorrect){
+                        for (int i = 0; i < pagesToRead; i++) {
+                            byte[] buffer = readTag((byte) (0x09 + i));
+                            for (int j = 0; j < 4; j++) {
+                                if (sample++ < currentMeasurementNumber) {
+                                    DataPoint dataPoint = new DataPoint();
+                                    dataPoint.temp = ConvertValue(buffer[j * 2 + 1], buffer[j * 2 + 2], roundTemp);
+                                    if (sample != 1) {
+                                        GetNextDataTime(cal, frequency_ms);
+                                    }
+                                    dataPoint.date = cal.getTime();
+                                    data.add(dataPoint);
                                 }
-                                dataPoint.date = cal.getTime();
-                                data.add(dataPoint);
                             }
-                        }
+                         }
+                    } else {
+                       text_val = "Mission unerwartet abgebrochen!";
+                       currentMeasurementNumber = 0;
                     }
                 }
             }
@@ -116,17 +122,17 @@ public class HandleTag {
                 nfcv_senseTag.close();
             } catch (IOException e) {
                 Log.i("Tag data", "transceive failed and stopped");
-                text_val = "Tag disconnection failed";
+                text_val = "Trennung des Sensors fehlgeschlagen!";
                 return;
             }
-            text_val = "Tag disconnected";
+            //text_val = "Tag disconnected";
         }
     }
 
 
     private void writeBlock(byte block, Tag tag, byte[] cmd) {
         if  (tag == null) {
-            text_val = "Tag not connected";
+            text_val = "Sensor nicht verbunden!";
             return;
         }else {
             byte[] id = tag.getId();
@@ -139,9 +145,9 @@ public class HandleTag {
 
                     try {
                         nfcv_senseTag.connect();
-                        text_val = "Tag connected";
+                        text_val = "Sensor verbunden";
                     } catch (IOException e) {
-                        text_val = "Tag connection lost";
+                        text_val = "Verbindung zum Sensor verloren!";
                         return;
                     }
                     byte[] ack = writeTag(cmd, block);
@@ -151,10 +157,10 @@ public class HandleTag {
                         nfcv_senseTag.close();
                     } catch (IOException e) {
                         Log.i("Tag data", "transceive failed and stopped");
-                        text_val = "Tag disconnection failed";
+                        text_val = "Trennung des Sensors fehlgeschlagen!";
                         return;
                     }
-                    text_val = "Tag disconnected";
+                    text_val = "Sensor getrennt";
                 }
         }
     }
@@ -285,21 +291,27 @@ public class HandleTag {
         return reading;
     }
 
-    private Calendar GetNextDataTime(Calendar cal, int frequency, int anzahl){//no crystal on sensor board. Frequency error up to 10%. For anzahl>10, time interval is therefore better approximated by dividing total time by anzahl
-        if(anzahl>10 & anzahl!=numberPassesConfigured) {
-            int lowerErrorFrequency=Math.round((lastTime-firstMeasurementTime)/(anzahl-1));
-            // check if lowerErrorFrequency differs from frequency (originally set) by more than 10%. That means the mission was unexpectedly stopped.
-            // In this case, lowerErrorFrequency shifts to more and more unrealistic (too large) values as lastTime equals the current system time. So we should use frequency instead.
-            double frequencyRatio = lowerErrorFrequency/frequency;
-            if(frequencyRatio >= 1.1){
-                cal.add(Calendar.MILLISECOND, frequency);
-            } else {
-                cal.add(Calendar.MILLISECOND, lowerErrorFrequency);
-            }
-        } else{
-            cal.add(Calendar.MILLISECOND, frequency);
-        }
+    private Calendar GetNextDataTime(Calendar cal, int frequency) {
+        cal.add(Calendar.MILLISECOND, frequency);
         return cal;
+    }
+
+    private boolean CheckIfMissionTimingIsCorrect(int frequency, int anzahl){
+        //There's no crystal on sensor board. Frequency error up to 10%.
+        // check if lowerErrorFrequency differs from frequency (originally set) by more than 10%.
+        // That means the mission was unexpectedly stopped or the measurement time intervals were stretched, both due to low battery voltage.
+        // In this case, don't show any values, but stop the mission, since we don't know the date/time values of the recorded temperatures.
+        if(anzahl!=numberPassesConfigured) { // either the mission is still running or it stopped/stretched unexpectedly
+            int lowerErrorFrequency = Math.round((lastTime - firstMeasurementTime) / (anzahl - 1));
+            double frequencyRatio = lowerErrorFrequency / frequency;
+            if(frequencyRatio >= 1.1 || frequencyRatio <= 0.9){ // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
+              return false; // mission stopped/stretched unexpectedly
+            } else {
+                return true; // mission still running correctly
+            }
+        } else {
+            return true; // mission finished correctly
+        }
     }
 
     private void GetSampleCount() {
@@ -346,21 +358,21 @@ public class HandleTag {
         int missionBatError = (statusRegisterByte2 & 0x02);//Table53
         switch (state) {
             case 0:
-                missionstatus[0] = "Idle ";
+                missionstatus[0] = "Untätig ";
                 break;
             case 1:
-                missionstatus[0] = "Sampling in Progress ";
+                missionstatus[0] = "Mission läuft ";
                 break;
             case 2:
-                missionstatus[0] = "Data Available in FRAM ";
+                missionstatus[0] = "Daten in FRAM ";
                 break;
             case 3:
-                missionstatus[0] = "Error During Mission: ";
+                missionstatus[0] = "Fehler während Mission: ";
                 break;
         }
 
         if(missionCompleted != 0) {
-            missionstatus[1] = "Mission completed ";// TODO: 08.10.17 Why is this always zero?
+            missionstatus[1] = "Mission vollständig ";// TODO: 08.10.17 Why is this always zero?
         }
         else {
             missionstatus[1] = "";
