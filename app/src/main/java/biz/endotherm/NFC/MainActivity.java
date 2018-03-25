@@ -372,7 +372,10 @@ public class MainActivity extends AppCompatActivity {
                     if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
                         missionStatusText.setText("Missionsstatus: " + currentMeasurementNumber + " von " + numberPassesConfigured + " Messwerten, " + frequencyStringFromMs + " Messintervall");
                     }
-                    if (currentMeasurementNumber==0){
+                    if (currentMeasurementNumber==0 && text_val.equals("Suspekte Sensorwerte!")){
+                        missionStatusText.setText("Missionsstatus: Erster Messwert am " +startTimeConfigured + ". Erhebliche Abweichung vom konfigurierten Messintervall (" + frequencyStringFromMs + ").");
+                    }
+                    else {
                         missionStatusText.setText("Missionsstatus: " +currentMeasurementNumber+" Messwert(e) von " + numberPassesConfigured +". Erster Messwert erwartet am " + startTimeCountdown+" (konfiguriert wurde "+startTimeConfigured+") " + " mit " + frequencyStringFromMs + " Messintervall ");
                     }
                 }
