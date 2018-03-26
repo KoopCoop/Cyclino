@@ -420,7 +420,7 @@ public class HandleTag {
         int frequencyIndex = (frequencyRegisterByte & 0x1f);//((frequencyRegisterByte & 0xff) << 3);
         int frequency = 0; //frequency in ms
 
-        switch (frequencyIndex) {//custom time not supported
+        switch (frequencyIndex) {
             /*case 0:
                 frequency = 250;
                 break;
@@ -452,28 +452,25 @@ public class HandleTag {
                 frequency = 600000;
                 break;
             case 10:
-                frequency = 900000;
-                break;
-            case 11:
                 frequency = 1800000;
                 break;
-            case 12:
+            case 11:
                 frequency = 3600000;
                 break;
-            case 13:
+            case 12:
                 frequency = 7200000;
                 break;
-            case 14:
+            case 13:
                 frequency = 18000000;
                 break;
-            case 15:
+            case 14:
                 frequency = 36000000;
                 break;
-            case 16:
+            case 15:
                 frequency = 86400000;
                 break;
-            case 17:
-                frequency = 1200000;
+            case 16:
+                frequency = 900000;
         }
 
         return frequency;
@@ -514,9 +511,6 @@ public class HandleTag {
                 break;
             case 900000:
                 frequencyStringFromMs = "15 min";
-                break;
-            case 1200000:
-                frequencyStringFromMs = "20 min";
                 break;
             case 1800000:
                 frequencyStringFromMs = "30 min";
@@ -592,30 +586,27 @@ public class HandleTag {
             case "10 min":
                 frequencyByteArray[0]=9;
                 break;
-            case "15 min":
+            case "30 min":
                 frequencyByteArray[0]=10;
                 break;
-            case "30 min":
+            case "1 h":
                 frequencyByteArray[0]=11;
                 break;
-            case "1 h":
+            case "2 h":
                 frequencyByteArray[0]=12;
                 break;
-            case "2 h":
+            case "5 h":
                 frequencyByteArray[0]=13;
                 break;
-            case "5 h":
+            case "10 h":
                 frequencyByteArray[0]=14;
                 break;
-            case "10 h":
+            case "24 h":
                 frequencyByteArray[0]=15;
                 break;
-            case "24 h":
+            case "15 min":
                 frequencyByteArray[0]=16;
-                break;
-            case "20 min":
-                frequencyByteArray[0]=17;
-                frequencyByteArray[1]=1200000;
+                frequencyByteArray[1]=900000;
                 break;
         }
         return frequencyByteArray;
