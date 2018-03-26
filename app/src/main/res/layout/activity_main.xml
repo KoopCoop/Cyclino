@@ -48,7 +48,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="0.76"
-                                android:text="NFC tag"
+                                android:text="@string/nfc_tag"
                                 android:textColor="@android:color/black" />
 
                             <TextView
@@ -56,7 +56,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:paddingLeft="20dp"
-                                android:text="Daten-Status"
+                                android:text="@string/data_status"
                                 android:textAlignment="textEnd"
                                 android:textAppearance="@style/TextAppearance.AppCompat" />
 
@@ -75,7 +75,7 @@
                             android:id="@+id/AusleseButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Auslesen"
+                            android:text="@string/read"
                             android:visibility="visible" />
 
                         <LinearLayout
@@ -93,7 +93,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="12dp"
                                 android:layout_weight="1"
-                                android:text="Daten kopieren"
+                                android:text="@string/copy"
                                 android:visibility="visible" />
 
                             <Switch
@@ -106,7 +106,7 @@
                                 android:showText="true"
                                 android:textOff="N"
                                 android:textOn="J"
-                                android:text = "Werte runden"
+                                android:text = "@string/round"
                                 android:thumbTextPadding = "0dp"
                                 android:visibility="visible" />
 
@@ -127,7 +127,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="12dp"
                             android:layout_weight="1"
-                            android:text="Stop"
+                            android:text="@string/stop"
                             android:textAlignment="center"
                             android:visibility="visible" />
 
@@ -136,7 +136,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Start"
+                            android:text="@string/start"
                             android:visibility="visible" />
 
                     </LinearLayout>
@@ -152,7 +152,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:paddingBottom="5dp"
-                                android:text="Bitte Sensor erneut scannen!"
+                                android:text="@string/scan_again"
                                 android:textColor="@android:color/holo_red_dark"
                                 android:visibility="visible" />
 
@@ -184,7 +184,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:ems="10"
-                                android:text="Neue Mission starten mit" />
+                                android:text="@string/new_mission" />
 
                             <Spinner
                                 android:id="@+id/frequenzspinner"
@@ -200,7 +200,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:ems="10"
-                                android:text="Messintervall, " />
+                                android:text="@string/interval2" />
 
                         </LinearLayout>
 
@@ -216,14 +216,14 @@
                                 android:layout_height="wrap_content"
                                 android:ems="8"
                                 android:inputType="number"
-                                android:text="908"
+                                android:text="@string/number_of_measurements"
                                 android:textColor="@android:color/black" />
 
                             <TextView
                                 android:id="@+id/textView7"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Wiederholungen am" />
+                                android:text="@string/repetitions" />
 
                         </LinearLayout>
 
@@ -257,7 +257,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:paddingRight="5dp"
-                                android:text="Kalibration:" />
+                                android:text="@string/calibration" />
 
                             <EditText
                                 android:id="@+id/calibrationTempEdit"
@@ -278,7 +278,7 @@
                                 android:id="@+id/textView14"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="entspricht Cyclino-Wert:" />
+                                android:text="@string/corresponds_to" />
 
                             <EditText
                                 android:id="@+id/cyclinoValueEdit"
@@ -299,7 +299,7 @@
                                 android:id="@+id/calibrationButton"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Setzen"
+                                android:text="@string/set"
                                 android:visibility="visible" />
 
                             <TextView

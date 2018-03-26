@@ -1,5 +1,6 @@
 package biz.endotherm.NFC;
 
+import android.content.res.Resources;
 import android.nfc.Tag;
 import android.nfc.tech.NfcV;
 import android.util.Log;
@@ -15,6 +16,7 @@ import java.io.IOException;
 
 public class HandleTag {
     private String text_val;
+    private int text_id;
     private String[] missionStatus_val={"", "","","",""};
     private String frequencyStringFromMs="0";
     private int frequency_ms=0;
@@ -36,6 +38,7 @@ public class HandleTag {
 
     //Getter und Setter
     public String getText_val(){return text_val;}
+    public int getText_id(){return text_id;}
     public String[] get_MissionStatus_val(){return missionStatus_val;}
     public String get_frequencyStringFromMs(){return frequencyStringFromMs;}
     public int get_anzahl(){return currentMeasurementNumber;}
@@ -49,7 +52,8 @@ public class HandleTag {
     //read data
     public void readTagData(Tag tag, boolean roundTemp) {
         if  (tag == null) {
-            text_val = "Tag not connected";
+            text_id = R.string.tag_not_connected;
+            text_val = "Sensor nicht verbunden!";
             return;
         }else {
             byte[] id = tag.getId();
@@ -62,9 +66,11 @@ public class HandleTag {
 
                     try {
                         nfcv_senseTag.connect();
-                        text_val = "Sensor verbunden";
+                        text_id = R.string.tag_not_connected;
+                        //text_val = "Sensor verbunden";
                     } catch (IOException e) {
-                        text_val = "Verbindung zum Sensor verloren!";
+                        //text_val = "Verbindung zum Sensor verloren!";
+                        text_id = R.string.tag_connection_lost;
                         return;
                     }
 
@@ -113,7 +119,8 @@ public class HandleTag {
                             }
                          }
                     } else {
-                       text_val = "Suspekte Sensorwerte!";
+                       text_id = R.string.suspicious_values;
+                       //text_val = "Suspekte Sensorwerte!";
                        currentMeasurementNumber = 0;
                     }
                 }
@@ -122,7 +129,8 @@ public class HandleTag {
                 nfcv_senseTag.close();
             } catch (IOException e) {
                 Log.i("Tag data", "transceive failed and stopped");
-                text_val = "Trennung des Sensors fehlgeschlagen!";
+                text_id = R.string.tag_disconnection_failed;
+                //text_val = "Trennung des Sensors fehlgeschlagen!";
                 return;
             }
             //text_val = "Tag disconnected";
@@ -132,7 +140,8 @@ public class HandleTag {
 
     private void writeBlock(byte block, Tag tag, byte[] cmd) {
         if  (tag == null) {
-            text_val = "Sensor nicht verbunden!";
+            //text_val = "Sensor nicht verbunden!";
+            text_id = R.string.tag_not_connected;
             return;
         }else {
             byte[] id = tag.getId();
@@ -145,9 +154,11 @@ public class HandleTag {
 
                     try {
                         nfcv_senseTag.connect();
-                        text_val = "Sensor verbunden";
+                        //text_val = "Sensor verbunden";
+                        text_id = R.string.tag_connected;
                     } catch (IOException e) {
-                        text_val = "Verbindung zum Sensor verloren!";
+                        //text_val = "Verbindung zum Sensor verloren!";
+                        text_id = R.string.tag_connection_lost;
                         return;
                     }
                     byte[] ack = writeTag(cmd, block);
@@ -157,10 +168,12 @@ public class HandleTag {
                         nfcv_senseTag.close();
                     } catch (IOException e) {
                         Log.i("Tag data", "transceive failed and stopped");
-                        text_val = "Trennung des Sensors fehlgeschlagen!";
+                        text_id = R.string.tag_disconnection_failed;
+                        //text_val = "Trennung des Sensors fehlgeschlagen!";
                         return;
                     }
-                    text_val = "Sensor getrennt";
+                    //text_val = "Sensor getrennt";
+                    text_id = R.string.tag_disconnected;
                 }
         }
     }
@@ -261,7 +274,8 @@ public class HandleTag {
         try {
             ack = nfcv_senseTag.transceive(cmdWriteTag);
         } catch (IOException e) {
-            text_val="Tag transfer failed";
+            //text_val="Tag transfer failed";
+            text_id = R.string.tag_transfer_failed;
             //Log.i("Tag data", "transceive failed");
             return null;
         }
@@ -284,7 +298,8 @@ public class HandleTag {
             reading = nfcv_senseTag.transceive(cmd);
             //Value.setText("Value: " + bytesToHex(reading) );
         } catch (IOException e) {
-            text_val = "Tag transfer failed"; // new version requires exception handling on each step
+            //text_val="Tag transfer failed";
+            text_id = R.string.tag_transfer_failed; // new version requires exception handling on each step
             Log.i("Tag data", "transceive failed");
             return null;
         }
