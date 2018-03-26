@@ -218,9 +218,9 @@ public class HandleTag {
         return cmd;
     }
 
-    private byte[] cmdBlock3(long customTime){
+    private byte[] cmdBlock3(int customTime){
         byte[] cmd = new byte[]{
-                (byte) (customTime), //Table84, 1200000ms
+                (byte) (customTime), //Table84, 900000ms
                 (byte) (customTime >> 8),//Table84
                 (byte) (customTime >> 16), //Table84
                 (byte) (customTime >> 24), //Table84
@@ -301,33 +301,20 @@ public class HandleTag {
         // check if lowerErrorFrequency differs from frequency (originally set) by more than 10%.
         // That means the mission was unexpectedly stopped or the measurement time intervals were stretched, both due to low battery voltage.
         // In this case, don't show any values, but stop the mission, since we don't know the date/time values of the recorded temperatures.
-        if(anzahl!=numberPassesConfigured && anzahl>10) { // either the mission is still running or it stopped/stretched unexpectedly
-            int lowerErrorFrequency = Math.round((lastTime - firstMeasurementTime) / (anzahl - 1));
-            double frequencyRatio = lowerErrorFrequency / frequency;
-            int expectedAnzahl = Math.round((lastTime - firstMeasurementTime) / frequency);
-            Log.v("Tag data", "erwartete Anzahl: " + expectedAnzahl);
-            if(frequencyRatio >= 1.1 || frequencyRatio <= 0.9){ // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
-              return false; // mission stopped/stretched unexpectedly
-            } else {
-                return true; // mission still running correctly
-            }
-        }
-        if(anzahl!=numberPassesConfigured && anzahl<=10 && anzahl>0) { // either the mission is still running or it stopped/stretched unexpectedly
+        if(anzahl!=numberPassesConfigured && anzahl>1) { // either the mission is still running or it stopped/stretched unexpectedly
             if (frequency != 0) {
-                int expectedAnzahl = Math.round((lastTime - firstMeasurementTime) / frequency);
-                Log.v("Tag data", "erwartete Anzahl: " + expectedAnzahl);
-                if (anzahl > expectedAnzahl + 2 || anzahl < expectedAnzahl) { // normally, only the latter should occur. To be sure, include first as well.
+                int minimumInterval = Math.round((lastTime - firstMeasurementTime - (int) (1.1 * frequency)) / (anzahl - 1));//maybe measurement is about to be taken
+                int maximumInterval = Math.round((lastTime - firstMeasurementTime) / (anzahl - 1));//measurement was just taken
+                if (minimumInterval > 11 * frequency || maximumInterval < 0.9 * frequency) { // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
                     return false; // mission stopped/stretched unexpectedly
                 } else {
-                    return true; // mission still running correctly. If not, we don't know
+                    return true; // mission still running correctly
                 }
+            } else {
+                return true; // mission finished correctly
             }
-            else {
-                return true;
-            }
-        }
-        else {
-            return true; // mission finished correctly
+        } else {
+            return true;
         }
     }
 
@@ -624,7 +611,7 @@ public class HandleTag {
         SetMissionTimestamp(tag, GetCurrentUnixTime(), wantedDelay_min);
         writeBlock((byte) 0x08, tag, cmdBlock8());
         writeBlock((byte) 0x02, tag, cmdBlock2(cic, wantedDelay_min));
-        writeBlock((byte) 0x03, tag, cmdBlock3(GetFrequency_ms()));
+        writeBlock((byte) 0x03, tag, cmdBlock3(GetFrequencyByteFromString(FrequencyString)[1]));
         writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister,passesRegister, 0, cic));
         readTagData(tag, false);
     }

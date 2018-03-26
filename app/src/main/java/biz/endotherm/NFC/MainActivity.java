@@ -369,10 +369,10 @@ public class MainActivity extends AppCompatActivity {
                     if (startStopText.getText().equals("Bitte Sensor erneut scannen!") | startStopText.getText().equals("Zum Starten einer neuen Mission: Gewünschte Parameter auswählen und Start-Button betätigen")) {
                         startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
                     }
-                    if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
+                    else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
                         missionStatusText.setText("Missionsstatus: " + currentMeasurementNumber + " von " + numberPassesConfigured + " Messwerten, " + frequencyStringFromMs + " Messintervall");
                     }
-                    if (currentMeasurementNumber==0 && text_val.equals("Suspekte Sensorwerte!")){
+                    else if (currentMeasurementNumber==0 && text_val.equals("Suspekte Sensorwerte!")){
                         missionStatusText.setText("Missionsstatus: Erster Messwert am " +startTimeConfigured + ". Erhebliche Abweichung vom konfigurierten Messintervall (" + frequencyStringFromMs + ").");
                     }
                     else {
