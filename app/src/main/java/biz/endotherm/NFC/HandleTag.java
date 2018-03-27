@@ -297,26 +297,35 @@ public class HandleTag {
     }
 
     private boolean CheckIfMissionTimingIsCorrect(int frequency, int anzahl){
-        //There's no crystal on sensor board. Frequency error up to 10%.
         // check if lowerErrorFrequency differs from frequency (originally set) by more than 10%.
         // That means the mission was unexpectedly stopped or the measurement time intervals were stretched, both due to low battery voltage.
         // In this case, don't show any values, but stop the mission, since we don't know the date/time values of the recorded temperatures.
-        if(anzahl!=numberPassesConfigured && anzahl>1) { // either the mission is still running or it stopped/stretched unexpectedly
-            if (frequency != 0) {
-                int minimumInterval = Math.round((lastTime - firstMeasurementTime - (int) (1.1 * frequency)) / (anzahl - 1));//maybe measurement is about to be taken
-                int maximumInterval = Math.round((lastTime - firstMeasurementTime) / (anzahl - 1));//measurement was just taken
-                if (maximumInterval > 1.1 * frequency || minimumInterval < 0.9 * frequency) { // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
+        if(anzahl!=numberPassesConfigured && anzahl>10) { // either the mission is still running or it stopped/stretched unexpectedly
+            int lowerErrorFrequency = Math.round((lastTime - firstMeasurementTime) / (anzahl - 1));
+            double frequencyRatio = lowerErrorFrequency / frequency;
+            int expectedAnzahl = Math.round((lastTime - firstMeasurementTime) / frequency);
+                if(frequencyRatio >= 1.1 || frequencyRatio <= 0.9){ // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
                     return false; // mission stopped/stretched unexpectedly
                 } else {
                     return true; // mission still running correctly
                 }
+        } else if(anzahl!=numberPassesConfigured && anzahl<=10 && anzahl>0) { // either the mission is still running or it stopped/stretched unexpectedly
+            if (frequency != 0) {
+                    int expectedAnzahlLowerBorder = 1+(int)((lastTime - firstMeasurementTime-0.1*frequency*(anzahl-1)) / (1.1*frequency));//subtracting timing error (10% maximum) for each measurement
+                    Log.v("Tag data", "erwartete Anzahl: " + expectedAnzahlLowerBorder);
+                    if (anzahl < expectedAnzahlLowerBorder || anzahl > expectedAnzahlLowerBorder+1) { // normally, only the first should occur. To be sure, include second (weak) check as well.
+                        return false; //stretched unexpectedly, this could also mean that it aborted
+                        } else {
+                            return true; // mission still running correctly. If not, we don't know
+                        }
             } else {
-                return true; // mission finished correctly
-            }
-        } else {
-            return true;
+                return true;
+                    }
         }
-    }
+        else {
+                return true; // mission finished correctly
+             }
+        }
 
     private void GetSampleCount() {
         byte[] idx=block8;
