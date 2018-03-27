@@ -27,7 +27,6 @@
     <string name="tag_disconnection_failed">Trennung des Sensors fehlgeschlagen!</string>
     <string name="tag_transfer_failed">Datenübertragung fehlgeschlagen!</string>
 
-    <string name="scan_tag">Bitte Sensor scannen</string>
     <string name="scan_again">Bitte Sensor erneut scannen!</string>
     <string name="no_nfc">No NFC!!</string>
     <string name="nfc_disabled">NFC is disabled.</string>
@@ -69,6 +68,10 @@
     <string name="calibration">Kalibration: </string>
     <string name="corresponds_to">entspricht Cyclino-Wert:</string>
     <string name="set">Setzen</string>
+
+    <string name="mission">Mission</string>
+    <string name="config">Konfig</string>
+    <string name="calibration2">Kalibration</string>
 
 
 

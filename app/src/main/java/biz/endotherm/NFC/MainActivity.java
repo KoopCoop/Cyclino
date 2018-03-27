@@ -93,21 +93,21 @@ public class MainActivity extends AppCompatActivity {
         host.setup();
 
         //Tab 1
-        TabHost.TabSpec spec = host.newTabSpec("Mission");
+        TabHost.TabSpec spec = host.newTabSpec(getString(R.string.mission));
         spec.setContent(R.id.Mission);
-        spec.setIndicator("Mission");
+        spec.setIndicator(getString(R.string.mission));
         host.addTab(spec);
 
         //Tab 2
-        spec = host.newTabSpec("Konfig");
+        spec = host.newTabSpec(getString(R.string.config));
         spec.setContent(R.id.Konfig);
-        spec.setIndicator("Konfig");
+        spec.setIndicator(getString(R.string.config));
         host.addTab(spec);
 
         //Tab 3
-        spec = host.newTabSpec("Kalibration");
+        spec = host.newTabSpec(getString(R.string.calibration2));
         spec.setContent(R.id.Kalibration);
-        spec.setIndicator("Kalibration");
+        spec.setIndicator(getString(R.string.calibration2));
         host.addTab(spec);
 
         text_view = (TextView) findViewById(R.id.textView);
@@ -387,7 +387,9 @@ public class MainActivity extends AppCompatActivity {
                                 numberPassesConfigured + " " + getString(R.string.values) + frequencyStringFromMs + " " + getString(R.string.interval));
                     }
                     else if (currentMeasurementNumber==0 && text_id == R.string.suspicious_values){
-                        missionStatusText.setText(getString(R.string.mission_status) + getString(R.string.first_val) +startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
+                        missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " " + startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
+                    } else if (currentMeasurementNumber==0 && numberPassesConfigured==0){ //no mission planned or active
+                        missionStatusText.setText("");
                     }
                     else {
                         missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.values_of) + " " + numberPassesConfigured + getString(R.string.first_val_expected) + " "
