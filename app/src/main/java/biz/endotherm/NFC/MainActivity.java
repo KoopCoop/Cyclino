@@ -379,11 +379,12 @@ public class MainActivity extends AppCompatActivity {
                 String startTimeCountdown=getStartTimeString(System.currentTimeMillis(),delayCountdown*60*1000);
                 
                 if(!handleTag.get_frequencyStringFromMs().equals("0")){
-                    if (startStopText.getText().equals(getString(R.string.scan_again)) | startStopText.getText().equals(getString(R.string.start_mission_text))) {
+                    if (startStopText.getText().equals(getString(R.string.scan_again))){ // | startStopText.getText().equals(getString(R.string.start_mission_text))) {
                         startStopText.setText(getString(R.string.start_mission_text));
                     }
                     else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
-                        missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + getString(R.string.of) + " " + numberPassesConfigured + getString(R.string.values) + frequencyStringFromMs + getString(R.string.interval));
+                        missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.of) + " " +
+                                numberPassesConfigured + " " + getString(R.string.values) + frequencyStringFromMs + " " + getString(R.string.interval));
                     }
                     else if (currentMeasurementNumber==0 && text_id == R.string.suspicious_values){
                         missionStatusText.setText(getString(R.string.mission_status) + getString(R.string.first_val) +startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
