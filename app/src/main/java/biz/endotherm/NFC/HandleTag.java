@@ -320,7 +320,7 @@ public class HandleTag {
             if (frequency != 0) {
                 int minimumInterval = Math.round((lastTime - firstMeasurementTime - (int) (1.1 * frequency)) / (anzahl - 1));//maybe measurement is about to be taken
                 int maximumInterval = Math.round((lastTime - firstMeasurementTime) / (anzahl - 1));//measurement was just taken
-                if (minimumInterval > 1.1 * frequency || maximumInterval < 0.9 * frequency) { // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
+                if (maximumInterval > 1.1 * frequency || minimumInterval < 0.9 * frequency) { // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
                     return false; // mission stopped/stretched unexpectedly
                 } else {
                     return true; // mission still running correctly
