@@ -302,30 +302,29 @@ public class HandleTag {
         // In this case, don't show any values, but stop the mission, since we don't know the date/time values of the recorded temperatures.
         if(anzahl!=numberPassesConfigured && anzahl>10) { // either the mission is still running or it stopped/stretched unexpectedly
             int lowerErrorFrequency = Math.round((lastTime - firstMeasurementTime) / (anzahl - 1));
-            double frequencyRatio = lowerErrorFrequency / frequency;
-            int expectedAnzahl = Math.round((lastTime - firstMeasurementTime) / frequency);
-                if(frequencyRatio >= 1.1 || frequencyRatio <= 0.9){ // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
-                    return false; // mission stopped/stretched unexpectedly
-                } else {
-                    return true; // mission still running correctly
-                }
+            double frequencyRatio = ( (double) lowerErrorFrequency / (double) frequency);
+            if(frequencyRatio >= 1.1 || frequencyRatio <= 0.9){ // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
+                return false; // mission stopped/stretched unexpectedly
+            } else {
+                return true; // mission still running correctly
+            }
         } else if(anzahl!=numberPassesConfigured && anzahl<=10 && anzahl>0) { // either the mission is still running or it stopped/stretched unexpectedly
             if (frequency != 0) {
                     int expectedAnzahlLowerBorder = 1+(int)((lastTime - firstMeasurementTime-0.1*frequency*(anzahl-1)) / (1.1*frequency));//subtracting timing error (10% maximum) for each measurement
                     Log.v("Tag data", "erwartete Anzahl: " + expectedAnzahlLowerBorder);
                     if (anzahl < expectedAnzahlLowerBorder || anzahl > expectedAnzahlLowerBorder+1) { // normally, only the first should occur. To be sure, include second (weak) check as well.
                         return false; //stretched unexpectedly, this could also mean that it aborted
-                        } else {
-                            return true; // mission still running correctly. If not, we don't know
-                        }
+                    } else {
+                        return true; // mission still running correctly. If not, we don't know
+                    }
             } else {
                 return true;
-                    }
+            }
         }
         else {
                 return true; // mission finished correctly
-             }
         }
+    }
 
     private void GetSampleCount() {
         byte[] idx=block8;
