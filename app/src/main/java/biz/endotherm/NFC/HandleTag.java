@@ -25,7 +25,8 @@ public class HandleTag {
     //private byte[] cmd;
     private int currentMeasurementNumber;
     private Calendar configuredMissionTimestamp = Calendar.getInstance();
-    private long delay_ms;
+    private long delayActual_ms;
+    private long delayRegister_ms;
     private long delayCountdown;
     private int numberPassesConfigured;
     private NfcV nfcv_senseTag;
@@ -55,8 +56,8 @@ public class HandleTag {
         return numberPassesConfigured;
     }
 
-    public long get_configuredDelay_ms() {
-        return delay_ms;
+    public long get_actualDelay_ms() {
+        return delayActual_ms;
     }
 
     public long get_delayCountdown() {
@@ -105,7 +106,8 @@ public class HandleTag {
                     numberPassesConfigured = GetNumberOfPassesFromRegister();
                     missionStatus_val = GetMissionStatus();
                     configuredMissionTimestamp = GetConfiguredMissionTimestamp();
-                    delay_ms = GetConfiguredDelay_ms();
+                    delayRegister_ms= GetDelayFromRegister_ms();
+                    delayActual_ms = GetActualDelay_ms();
                     delayCountdown = GetDelayCountdown();
 
                     data.clear();
@@ -113,8 +115,9 @@ public class HandleTag {
                     lastTime = GetCurrentUnixTime() * 1000;//current time, approx. time of last measurement
                     Calendar cal = Calendar.getInstance();
                     cal.setTimeInMillis(GetSetUnixTime() * 1000);
-                    cal.add(Calendar.MILLISECOND, (int) delay_ms);//Mission start time
-                    firstMeasurementTime = cal.getTimeInMillis();
+                    cal.add(Calendar.MILLISECOND, (int) delayActual_ms);//Mission start time
+                    Log.i("Tag data", "delay actual: "+delayActual_ms);
+                    firstMeasurementTime = cal.getTimeInMillis();//For CIC filter, measurement takes 16384ms for accuracy>14bit (Firmware User guide, Table 4)
 
                     if (currentMeasurementNumber > 908) {//default for factory fresh chips is bigger
                         currentMeasurementNumber = 0;
@@ -199,12 +202,12 @@ public class HandleTag {
                 //(byte) 0x64, //Table47 100 passes, 16h
                 (byte) passesRegister,
                 (byte) 0x01, //Table49 No averaging selected
-                (byte) 0x00, //Table51
+                (byte) 0x20, //Table51 open battery switch after mission (ich glaube, das heißt dass die Batterie ausgeschaltet wird)
                 (byte) 0x00, //Table53 no thermistor
         };
-        if (reset == 1)
-            cmd[0] |= 0x40; //Table 39 Software Reset without battery
-        //cmd[0] |= 0x8C;//0x8C; //Table39 Software Reset with Battery
+        if (reset == 1) {
+             cmd[0]=(byte) 0x84; //Table 39 Software Reset, also turns off battery
+        }
         if (cic == 0)
             cmd[2] = 0x08;//only internal Sensor Table 43, no CIC available
         return cmd;
@@ -321,35 +324,25 @@ public class HandleTag {
     }
 
     private boolean CheckIfMissionTimingIsCorrect(int frequency, int anzahl){
+
         // check if lowerErrorFrequency differs from frequency (originally set) by more than 10%.
         // That means the mission was unexpectedly stopped or the measurement time intervals were stretched, both due to low battery voltage.
         // In this case, don't show any values, but stop the mission, since we don't know the date/time values of the recorded temperatures.
-        if(anzahl!=numberPassesConfigured && anzahl>10) { // either the mission is still running or it stopped/stretched unexpectedly
-            int lowerErrorFrequency = Math.round((lastTime - firstMeasurementTime) / (anzahl - 1));
-            double frequencyRatio = lowerErrorFrequency / frequency;
-            int expectedAnzahl = Math.round((lastTime - firstMeasurementTime) / frequency);
-                if(frequencyRatio >= 1.1 || frequencyRatio <= 0.9){ // normally, only >=1.1 should occur. To be sure, include <=0.9 as well.
-                    return false; // mission stopped/stretched unexpectedly
-                } else {
-                    return true; // mission still running correctly
-                }
-        } else if(anzahl!=numberPassesConfigured && anzahl<=10 && anzahl>0) { // either the mission is still running or it stopped/stretched unexpectedly
+        if(anzahl!=numberPassesConfigured && anzahl>1) { // either the mission is still running or it stopped/stretched unexpectedly
             if (frequency != 0) {
-                    int expectedAnzahlLowerBorder = 1+(int)((lastTime - firstMeasurementTime-0.1*frequency*(anzahl-1)) / (1.1*frequency));//subtracting timing error (10% maximum) for each measurement
-                    Log.v("Tag data", "erwartete Anzahl: " + expectedAnzahlLowerBorder);
-                    if (anzahl < expectedAnzahlLowerBorder || anzahl > expectedAnzahlLowerBorder+1) { // normally, only the first should occur. To be sure, include second (weak) check as well.
-                        return false; //stretched unexpectedly, this could also mean that it aborted
-                        } else {
-                            return true; // mission still running correctly. If not, we don't know
-                        }
+                if ((lastTime-firstMeasurementTime-0.1*(delayActual_ms))>1.1*frequency*anzahl || (lastTime-firstMeasurementTime+(delayActual_ms)*0.1) < (0.9*frequency*(anzahl-1))) { // normally, only the first should occur. To be sure, include second (weak) check as well.
+                    return false; //stretched unexpectedly, this could also mean that it aborted
+                } else {
+                    return true; // mission still running correctly. If not, we don't know
+                }
             } else {
                 return true;
-                    }
+            }
         }
         else {
-                return true; // mission finished correctly
+            return true; // mission finished correctly
              }
-        }
+    }
 
         private void GetSampleCount() {
         byte[] idx=block8;
@@ -358,14 +351,13 @@ public class HandleTag {
         currentMeasurementNumber = ((index2 & 0xff) << 8) | ((index & 0xff) );
     }
 
-    private long GetConfiguredDelay_ms() {
-        long delayFromRegister_ms=GetDelayFromRegister_ms();
+    private long GetActualDelay_ms() {
         if(currentMeasurementNumber>10 & currentMeasurementNumber!=numberPassesConfigured) {
-            delay_ms=(long)((delayFromRegister_ms+(currentMeasurementNumber-1.)*GetFrequency_ms())/(System.currentTimeMillis()-GetSetUnixTime()*1000.)*delayFromRegister_ms);
+            delayActual_ms=(long)((delayRegister_ms+16384+(currentMeasurementNumber-1.)*GetFrequency_ms())/(System.currentTimeMillis()-GetSetUnixTime()*1000.)*(16384+delayRegister_ms));//16384ms is conversion time for accuracy >14bit (Table 4 Firmware User Guide)
         } else{
-            delay_ms=delayFromRegister_ms;
+            delayActual_ms=delayRegister_ms+16384;
         }
-        return delay_ms;
+        return delayActual_ms;
     }
 
     private long GetDelayCountdown(){
@@ -708,7 +700,7 @@ public class HandleTag {
     }
 
     public void setCalibrationOffset(Tag tag, long newCalibrationOffset){
-        writeBlock((byte) 0xEC, tag, cmdBlock236(GetSetUnixTime(), newCalibrationOffset,delay_ms/60/1000));
+        writeBlock((byte) 0xEC, tag, cmdBlock236(GetSetUnixTime(), newCalibrationOffset,delayRegister_ms/60/1000));
     }
 
     public int GetSetCalibrationOffset(){

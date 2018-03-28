@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             numberPassesFromEdit="";
     int currentMeasurementNumber = 0;
     Calendar configuredMissionTimestamp;
-    long delay_ms=0;
+    long delayActual_ms=0;
     long delayCountdown=0;
     int numberPassesConfigured = 0;
     String gesetztesIntervall = "";
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     long newCalibrationOffset=0;
     double cyclinoValue = 0;
     double calibrationTemp = 0;
-
+    long nowMillis=0;
 
     public final static String EXTRA_MESSAGE = "biz.endotherm.NFC.MESSAGE";
     @Override
@@ -188,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
             String[][] techListsArray = new String[][] { new String[] { NfcV.class.getName() } };
             //Enable foreground dispatch to stop restart of app on detection
             nfc.enableForegroundDispatch(this, mpendingIntent, intentFiltersArray, techListsArray);
+            nowMillis=System.currentTimeMillis();
         }
 
         final Button ausleseButton = (Button) findViewById(R.id.AusleseButton);
@@ -199,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                 numberPassesConfigured = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 text_val=handleTag.getText_val();
-                delay_ms=handleTag.get_configuredDelay_ms();
+                delayActual_ms=handleTag.get_actualDelay_ms();
                 delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
 
@@ -352,31 +353,41 @@ public class MainActivity extends AppCompatActivity {
         mTimer = new Runnable() {
             @Override
             public void run() {
+
                 missionStatus_val = handleTag.get_MissionStatus_val();
                 currentMeasurementNumber = handleTag.get_anzahl();
                 numberPassesConfigured = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 text_val=handleTag.getText_val();
-                delay_ms=handleTag.get_configuredDelay_ms();
+                delayActual_ms=handleTag.get_actualDelay_ms();
+
+                Log.v("Tag data", "actualDelay= "+delayActual_ms);
                 delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
 
-                String startTimeConfigured=getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delay_ms);
-                String startTimeCountdown=getStartTimeString(System.currentTimeMillis(),delayCountdown*60*1000);
-
+                String startTimeCountdown=getStartTimeString(nowMillis,delayCountdown*60*1000);
+                String startTimeConfigured=getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delayActual_ms);//add conversion time (Table 4 Firmware User Guide)
 
                 if(!handleTag.get_frequencyStringFromMs().equals("0")){
                     if (startStopText.getText().equals("Bitte Sensor erneut scannen!") | startStopText.getText().equals("Zum Starten einer neuen Mission: Gewünschte Parameter auswählen und Start-Button betätigen")) {
                         startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
                     }
                     else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
-                        missionStatusText.setText("Missionsstatus: " + currentMeasurementNumber + " von " + numberPassesConfigured + " Messwerten, " + frequencyStringFromMs + " Messintervall");
+                        missionStatusText.setText("Missionsstatus: " + currentMeasurementNumber + " von " + numberPassesConfigured + " Messwerten, "
+                                + frequencyStringFromMs + " Messintervall");
                     }
                     else if (currentMeasurementNumber==0 && text_val.equals("Suspekte Sensorwerte!")){
-                        missionStatusText.setText("Missionsstatus: Erster Messwert am " +startTimeConfigured + ". Erhebliche Abweichung vom konfigurierten Messintervall (" + frequencyStringFromMs + ").");
+                        missionStatusText.setText("Missionsstatus: Erster Messwert am " +startTimeConfigured
+                                + ". Erhebliche Abweichung vom konfigurierten Messintervall (" + frequencyStringFromMs + ").");
+                    }
+                    else if (numberPassesConfigured==0){
+                        missionStatusText.setText("Missionsstatus: "+ +currentMeasurementNumber+" Messwert(e) von "
+                                + numberPassesConfigured +".");
                     }
                     else {
-                        missionStatusText.setText("Missionsstatus: " +currentMeasurementNumber+" Messwert(e) von " + numberPassesConfigured +". Erster Messwert erwartet am " + startTimeCountdown+" (konfiguriert wurde "+startTimeConfigured+") " + " mit " + frequencyStringFromMs + " Messintervall ");
+                        missionStatusText.setText("Missionsstatus: " +currentMeasurementNumber+" Messwert(e) von "
+                                + numberPassesConfigured +". Erster Messwert erwartet am " + startTimeConfigured + " (noch "
+                                + delayCountdown + " Minute(n)). "+ " mit " + frequencyStringFromMs + " Messintervall. ");
                     }
                 }
                 text_view.setText(text_val);
@@ -486,13 +497,14 @@ public class MainActivity extends AppCompatActivity {
             numberPassesConfigured = handleTag.get_numberOfPasses();
             gesetztesIntervall = handleTag.get_frequencyStringFromMs();
             configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
-            delay_ms=handleTag.get_configuredDelay_ms();
+            delayActual_ms=handleTag.get_actualDelay_ms();
             text_val = handleTag.getText_val();
             return null;
         }
 
     }
     private String getStartTimeString(long unixTime_ms, long delay) {
+        String startTimeSeconds;
         String startTimeMinute;
         String startTimeHour;
         Calendar startTime = Calendar.getInstance();
@@ -510,7 +522,14 @@ public class MainActivity extends AppCompatActivity {
         else {
             startTimeHour=""+startTime.get(Calendar.HOUR_OF_DAY);
         }
-        String startTimeString = startTime.get(Calendar.DAY_OF_MONTH) + "." + startTimeMonth + "." + startTime.get(Calendar.YEAR) + " " + startTimeHour + ":" + startTimeMinute;
+        if(startTime.get(Calendar.SECOND)<10){
+            startTimeSeconds="0"+startTime.get(Calendar.SECOND);
+        }
+        else {
+            startTimeSeconds=""+startTime.get(Calendar.SECOND);
+        }
+
+        String startTimeString = startTime.get(Calendar.DAY_OF_MONTH) + "." + startTimeMonth + "." + startTime.get(Calendar.YEAR) + " " + startTimeHour + ":" + startTimeMinute+ ":" + startTimeSeconds;
         return startTimeString;
     }
 
