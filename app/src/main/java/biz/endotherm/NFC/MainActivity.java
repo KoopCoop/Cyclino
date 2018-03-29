@@ -272,37 +272,44 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 numberPassesFromEdit = wiederholungen.getText().toString();
-
-                if (numberPassesFromEdit.equals("0")|numberPassesFromEdit.equals("")|Integer.parseInt(numberPassesFromEdit)>908){
-                    handleTag.stopDevice(currentTag, cic);//Batterie wird ausgeschaltet
-                    startStopText.setText("Fehlerhafte Eingabe für Anzahl der Wiederholungen: erlaubt sind Werte von 1 bis 908");
-                    return;
+                missionStatus_val=handleTag.get_MissionStatus_val();
+                if (numberPassesFromEdit.equals("0") || numberPassesFromEdit.equals("") || Integer.parseInt(numberPassesFromEdit) > 908) {
+                    if(!missionStatus_val[4].equals("BatError/BatOFF ")) {
+                        handleTag.stopDevice(currentTag, cic);//Batterie wird ausgeschaltet
+                        startStopText.setText("Fehlerhafte Eingabe für Anzahl der Wiederholungen: erlaubt sind Werte von 1 bis 908");
+                        handleTag.readTagData(currentTag,true);
+                        missionStatus_val=handleTag.get_MissionStatus_val();
+                    } else{
+                        startStopText.setText("Fehlerhafte Eingabe für Anzahl der Wiederholungen: erlaubt sind Werte von 1 bis 908");
+                    }
                 }
+                else{
 
-                Date now = new Date();
-                long millisNow = now.getTime();
+                    Date now = new Date();
+                    long millisNow = now.getTime();
 
-                DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
-                TimePicker timePicker = (TimePicker) findViewById(R.id.startTimePicker);
+                    DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
+                    TimePicker timePicker = (TimePicker) findViewById(R.id.startTimePicker);
 
-                int startYear = datePicker.getYear()-1900;
-                int startMonth = datePicker.getMonth();
-                int startDay = datePicker.getDayOfMonth();
-                int startHour = timePicker.getCurrentHour();
-                int startMinute = timePicker.getCurrentMinute();
+                    int startYear = datePicker.getYear() - 1900;
+                    int startMonth = datePicker.getMonth();
+                    int startDay = datePicker.getDayOfMonth();
+                    int startHour = timePicker.getCurrentHour();
+                    int startMinute = timePicker.getCurrentMinute();
 
-                Date missionStart = new Date(startYear, startMonth, startDay, startHour, startMinute);
+                    Date missionStart = new Date(startYear, startMonth, startDay, startHour, startMinute);
 
-                long millisStart = missionStart.getTime();
-                long delay_min = (millisStart - millisNow) / 60000;
-                if(delay_min==0){
-                    delay_min=1;
-                }
-                if(delay_min>0) {
-                    handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
-                    startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
-                } else {
-                    startStopText.setText("Der Missionsbeginn läge in der Vergangenheit. Bitte überdenken! Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
+                    long millisStart = missionStart.getTime();
+                    long delay_min = (millisStart - millisNow) / 60000;
+                    if (delay_min == 0) {
+                        delay_min = 1;
+                    }
+                    if (delay_min > 0) {
+                        handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
+                        startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
+                    } else {
+                        startStopText.setText("Der Missionsbeginn läge in der Vergangenheit. Bitte überdenken! Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
+                    }
                 }
             }
         });
