@@ -193,7 +193,7 @@ public class HandleTag {
         }
     }
 
-    private byte[] cmdBlock0(int frequencyRegister, int passesRegister, int reset, int cic) {
+    private byte[] cmdBlock0(int frequencyRegister, int passesRegister, int reset, int cic, int battery) {
         byte[] cmd = new byte[]{  //Start Bit in Table39  gesetzt.
                 (byte) 0x0D, //Table39 Start bit is set, after this is written this starts the sampling process, interrupt enabled for On/Off
                 (byte) 0x00, //Table41 Status byte
@@ -205,8 +205,10 @@ public class HandleTag {
                 (byte) 0x20, //Table51 open battery switch after mission (ich glaube, das heißt dass die Batterie ausgeschaltet wird)
                 (byte) 0x00, //Table53 no thermistor
         };
-        if (reset == 1) {
+        if (reset == 1& battery!=0) {
             cmd[0]=(byte) 0x84; //Table 39 Software Reset, also turns off battery
+        } else if(reset==1 && battery==0){
+            cmd[0]=(byte) 0x04;
         }
         if (cic == 0)
             cmd[2] = 0x08;//only internal Sensor Table 43, no CIC available
@@ -636,12 +638,13 @@ public class HandleTag {
         writeBlock((byte) 0x08, tag, cmdBlock8());
         writeBlock((byte) 0x02, tag, cmdBlock2(cic, wantedDelay_min));
         writeBlock((byte) 0x03, tag, cmdBlock3(GetFrequencyByteFromString(FrequencyString)[1]));
-        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister,passesRegister, 0, cic));
+        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister,passesRegister, 0, cic, 1));
         readTagData(tag, false);
     }
 
     public void stopDevice(Tag tag, int cic) {
-        writeBlock((byte) 0x00, tag, cmdBlock0( (byte) 0x0, (byte) 0x00, 1, cic));
+        writeBlock((byte) 0x00, tag, cmdBlock0( (byte) 0x0, (byte) 0x00, 1, cic, 1));
+        writeBlock((byte) 0x00, tag, cmdBlock0( (byte) 0x0, (byte) 0x00, 1, cic, 0));
         readTagData(tag, false);
     }
 

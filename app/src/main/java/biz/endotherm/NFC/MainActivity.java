@@ -316,13 +316,17 @@ public class MainActivity extends AppCompatActivity {
                 if (currentTag == null) {
                     startStopText.setText("Tag nicht verbunden!");
                 } else {
-                    handleTag.stopDevice(currentTag, cic);
-                    if (handleTag.get_numberOfPasses() == 0 && !handleTag.getText_val().equals("Tag connection lost")) {
-                        startStopText.setText("Mission gestoppt!");
-                    } else {
-                        startStopText.setText("Stoppen der Mission leider fehlgeschlagen (" + handleTag.getText_val() + ") Bitte erneut probieren!");
+                    if(numberPassesConfigured!=0) {
+                        handleTag.stopDevice(currentTag, cic);
+                        if (handleTag.get_numberOfPasses() == 0 && !handleTag.getText_val().equals("Tag connection lost")) {
+                            startStopText.setText("Mission gestoppt!");
+                        } else {
+                            startStopText.setText("Stoppen der Mission leider fehlgeschlagen (" + handleTag.getText_val() + ") Bitte erneut probieren!");
+                        }
+                        ausleseButton.callOnClick();
+                    }else{
+                        startStopText.setText("Mission bereits gestoppt");
                     }
-                    ausleseButton.callOnClick();
                 }
             }
         });
