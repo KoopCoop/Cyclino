@@ -304,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
                    //     startStopText.setText("Starten der Mission leider fehlgeschlagen (" + handleTag.getText_val() + " " + missionStatus_val[3] + missionStatus_val[4] + "). Bitte erneut probieren!");
                    // }
                 } else {
-                    startStopText.setText(getString(R.string.mission_in_past));
+                    startStopText.setText(getString(R.string.mission_in_past) + " " + getString(R.string.start_mission_text));
                 }
             }
         });
@@ -384,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
                         missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.of) + " " +
-                                numberPassesConfigured + " " + getString(R.string.values) + frequencyStringFromMs + " " + getString(R.string.interval));
+                                numberPassesConfigured + " " + getString(R.string.values) + " " + frequencyStringFromMs + " " + getString(R.string.interval));
                     }
                     else if (currentMeasurementNumber==0 && text_id == R.string.suspicious_values){
                         missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " " + startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
