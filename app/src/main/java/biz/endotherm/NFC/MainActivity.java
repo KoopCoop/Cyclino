@@ -66,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
     private Runnable mTimer;
 
     //display variables
-    String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="", frequencyStringFromMs="0",
+    String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="",
+            frequencyStringFromMs="0",
             numberPassesFromEdit="";
     int currentMeasurementNumber = 0;
     Calendar configuredMissionTimestamp;
@@ -398,7 +399,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 text_view.setText(text_val);
-                missionStatus.setText(missionStatus_val[0]+missionStatus_val[1]+missionStatus_val[2]+missionStatus_val[3]+missionStatus_val[4]);
+                if(missionStatus_val[0].equals("Mission fertig ")||(numberPassesConfigured==0 && !missionStatus_val[4].equals(""))) {
+                    missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + "Batterie aus"/*missionStatus_val[4]*/);
+                }else if(!missionStatus_val[4].equals("")){
+                    missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + "Batteriefehler"/*missionStatus_val[4]*/);
+                } else{
+                    missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + missionStatus_val[4]);
+                }
 
                 /*ListView listView = (ListView) findViewById(R.id.messwerteList);
                 listView.setAdapter(adapter);
