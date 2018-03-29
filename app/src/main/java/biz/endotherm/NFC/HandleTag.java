@@ -206,9 +206,9 @@ public class HandleTag {
                 (byte) 0x00, //Table53 no thermistor
         };
         if (reset == 1& battery!=0) {
-            cmd[0]=(byte) 0x84; //Table 39 Software Reset, also turns off battery
-        } else if(reset==1 && battery==0){
-            cmd[0]=(byte) 0x04;
+            cmd[0]=(byte) 0x84; //Table 39 Software Reset, but doesn't turns off battery (see priority)!
+        } else if(reset==1){
+            cmd[0]=(byte) 0x04; //Table 39: turn off battery
         }
         if (cic == 0)
             cmd[2] = 0x08;//only internal Sensor Table 43, no CIC available
