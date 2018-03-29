@@ -206,9 +206,9 @@ public class HandleTag {
                 (byte) 0x20, //Table51 open battery switch after mission (ich glaube, das heißt dass die Batterie ausgeschaltet wird)
                 (byte) 0x00, //Table53 no thermistor
         };
-        if (reset == 1& battery!=0) {
+        /*if (reset == 1& battery!=0) {
             cmd[0]=(byte) 0x80; //Table 39 Software Reset, but doesn't turns off battery (see priority)!
-        } else if(reset==1){
+        } else*/ if(reset==1){
             cmd[0]=(byte) 0x04; //Table 39: turn off battery
         }
         if (cic == 0)
@@ -648,8 +648,11 @@ public class HandleTag {
     }
 
     public void stopDevice(Tag tag, int cic) {
+        String frequencyString=GetFrequencyStringFromMs(GetFrequency_ms());
+        String numberPassesString= String.valueOf(GetNumberOfPassesFromRegister());
+        int frequencyRegister = GetFrequencyRegister(frequencyString, numberPassesString);
         writeBlock((byte) 0x00, tag, cmdBlock0( (byte) 0x0, (byte) 0x00, 1, cic, 1));
-        writeBlock((byte) 0x00, tag, cmdBlock0( (byte) 0x0, (byte) 0x00, 1, cic, 0));
+        writeBlock((byte) 0x00, tag, cmdBlock0( frequencyRegister, (byte) 0x00, 1, cic, 0));
         readTagData(tag, false);
     }
 

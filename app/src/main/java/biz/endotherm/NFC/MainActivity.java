@@ -388,9 +388,12 @@ public class MainActivity extends AppCompatActivity {
                         missionStatusText.setText("Missionsstatus: Erster Messwert am " +startTimeConfigured
                                 + ". Erhebliche Abweichung vom konfigurierten Messintervall (" + frequencyStringFromMs + ").");
                     }
-                    else if (numberPassesConfigured==0){
+                    else if (numberPassesConfigured==0 && currentMeasurementNumber!=0){
                         missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
-                                " Messwert(e). Siehe Daten unten (nach dem Auslesen)");
+                                " Messwert(e). Siehe Daten unten (nach Auslesen)");
+                    }
+                    else if (numberPassesConfigured==0){
+                        missionStatusText.setText("Missionsstatus: Keine neue Mission.");
                     }
                     else {
                         missionStatusText.setText("Missionsstatus: Messintervall " + frequencyStringFromMs + ", "+currentMeasurementNumber+" Messwert(e) von "
