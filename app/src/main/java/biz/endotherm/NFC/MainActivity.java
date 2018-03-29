@@ -273,6 +273,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 numberPassesFromEdit = wiederholungen.getText().toString();
 
+                if (numberPassesFromEdit.equals("0")|numberPassesFromEdit.equals("")|Integer.parseInt(numberPassesFromEdit)>908){
+                    handleTag.stopDevice(currentTag, cic);//Batterie wird ausgeschaltet
+                    startStopText.setText("Fehlerhafte Eingabe für Anzahl der Wiederholungen: erlaubt sind Werte von 1 bis 908");
+                    return;
+                }
+
                 Date now = new Date();
                 long millisNow = now.getTime();
 
@@ -295,13 +301,6 @@ public class MainActivity extends AppCompatActivity {
                 if(delay_min>0) {
                     handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
                     startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
-
-                    //if (missionStatus_val[0].equals("Sampling in Progress ") ) {
-                    //startStopText.setText("Zum Starten einer Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
-                    //    startStopText.setText("Mission gestartet mit: " + numberPassesFromEdit + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall, erster Messwert am " + getStartTimeString(System.currentTimeMillis(), delay_min * 60 * 1000)+" (noch "+delayCountdown+" Minuten)");
-                    // } else {
-                    //     startStopText.setText("Starten der Mission leider fehlgeschlagen (" + handleTag.getText_val() + " " + missionStatus_val[3] + missionStatus_val[4] + "). Bitte erneut probieren!");
-                    // }
                 } else {
                     startStopText.setText("Der Missionsbeginn läge in der Vergangenheit. Bitte überdenken! Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
                 }
@@ -364,18 +363,15 @@ public class MainActivity extends AppCompatActivity {
 
                 missionStatus_val = handleTag.get_MissionStatus_val();
 
-                Log.v("Tag data", "Missionstatus_val= "+missionStatus_val[4]);
                 currentMeasurementNumber = handleTag.get_anzahl();
                 numberPassesConfigured = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 text_val=handleTag.getText_val();
                 delayActual_ms=handleTag.get_actualDelay_ms();
 
-                Log.v("Tag data", "actualDelay= "+delayActual_ms);
                 delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
 
-                String startTimeCountdown=getStartTimeString(nowMillis,delayCountdown*60*1000);
                 String startTimeConfigured=getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delayActual_ms);//add conversion time (Table 4 Firmware User Guide)
 
                 if(!handleTag.get_frequencyStringFromMs().equals("0")){
@@ -411,20 +407,6 @@ public class MainActivity extends AppCompatActivity {
                 } else{
                     missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + missionStatus_val[4]);
                 }
-
-                /*ListView listView = (ListView) findViewById(R.id.messwerteList);
-                listView.setAdapter(adapter);
-                // prevent listview from scrolling
-                if (adapter.getCount()>0) {
-                    View item = adapter.getView(0, null, listView);
-                    item.measure(0, 0);
-                    ViewGroup.LayoutParams lp = listView.getLayoutParams();
-                    lp.height = (item.getMeasuredHeight() + listView.getDividerHeight())
-                            * adapter.getCount();
-                    listView.setLayoutParams(lp);
-                }
-
-                adapter.setData(handleTag.GetData());*/
 
                 mHandler.postDelayed(this, 50);
             }
