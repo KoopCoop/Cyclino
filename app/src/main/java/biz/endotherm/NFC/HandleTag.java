@@ -148,6 +148,7 @@ public class HandleTag {
             }
             try {
                 nfcv_senseTag.close();
+                text_val = "Sensor erfolgreich getrennt";
             } catch (IOException e) {
                 Log.i("Tag data", "transceive failed and stopped");
                 text_val = "Trennung des Sensors fehlgeschlagen!";
@@ -391,10 +392,10 @@ public class HandleTag {
                 missionstatus[0] = "Untätig ";
                 break;
             case 1:
-                missionstatus[0] = "Mission läuft ";
+                missionstatus[0] = "";//eigentlich "Mission läuft", leider aber immer gesetzt außer bei "Mission fertig"
                 break;
             case 2:
-                missionstatus[0] = "Daten in FRAM ";
+                missionstatus[0] = "Mission fertig ";
                 break;
             case 3:
                 missionstatus[0] = "Fehler während Mission: ";
