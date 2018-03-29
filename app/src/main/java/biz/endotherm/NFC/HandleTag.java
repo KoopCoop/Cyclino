@@ -206,7 +206,7 @@ public class HandleTag {
                 (byte) 0x00, //Table53 no thermistor
         };
         if (reset == 1& battery!=0) {
-            cmd[0]=(byte) 0x84; //Table 39 Software Reset, but doesn't turns off battery (see priority)!
+            cmd[0]=(byte) 0x80; //Table 39 Software Reset, but doesn't turns off battery (see priority)!
         } else if(reset==1){
             cmd[0]=(byte) 0x04; //Table 39: turn off battery
         }

@@ -388,8 +388,8 @@ public class MainActivity extends AppCompatActivity {
                                 + ". Erhebliche Abweichung vom konfigurierten Messintervall (" + frequencyStringFromMs + ").");
                     }
                     else if (numberPassesConfigured==0){
-                        missionStatusText.setText("Missionsstatus: "+ +currentMeasurementNumber+" Messwert(e) von "
-                                + numberPassesConfigured +".");
+                        missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
+                                " Messwert(e).");
                     }
                     else {
                         missionStatusText.setText("Missionsstatus: " +currentMeasurementNumber+" Messwert(e) von "
