@@ -389,7 +389,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else if (numberPassesConfigured==0){
                         missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
-                                " Messwert(e).");
+                                " Messwert(e). Siehe Daten unten (nach dem Auslesen)");
                     }
                     else {
                         missionStatusText.setText("Missionsstatus: " +currentMeasurementNumber+" Messwert(e) von "

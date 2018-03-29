@@ -420,7 +420,7 @@ public class HandleTag {
             missionstatus[3] = "";
         }
         if(missionBatError != 0) {
-            missionstatus[4] = "BatError ";// this works
+            missionstatus[4] = "BatError/BatOFF ";// this works
         }
         else {
             missionstatus[4] = "";
