@@ -67,11 +67,11 @@ public class MainActivity extends AppCompatActivity {
     private Runnable mTimer;
 
     //display variables
-    String f_val="00 00 00 00 00 00 00 00", text_val="Bitte Sensor scannen", frequencyFromSpinner="", frequencyStringFromMs="0",
-            numberPassesFromEdit="";
+    String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="",
+            frequencyStringFromMs="0", numberPassesFromEdit="";
     int currentMeasurementNumber = 0;
     Calendar configuredMissionTimestamp;
-    long delay_ms=0;
+    long delayActual_ms=0;
     long delayCountdown=0;
     int numberPassesConfigured = 0;
     String gesetztesIntervall = "";
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
     long newCalibrationOffset=0;
     double cyclinoValue = 0;
     double calibrationTemp = 0;
-
+    long nowMillis=0;
 
     public final static String EXTRA_MESSAGE = "biz.endotherm.NFC.MESSAGE";
     @Override
@@ -189,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
             String[][] techListsArray = new String[][] { new String[] { NfcV.class.getName() } };
             //Enable foreground dispatch to stop restart of app on detection
             nfc.enableForegroundDispatch(this, mpendingIntent, intentFiltersArray, techListsArray);
+            nowMillis=System.currentTimeMillis();
         }
 
         final Button ausleseButton = (Button) findViewById(R.id.AusleseButton);
@@ -205,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                 if(text_id != 0){
                     text_val = getString(text_id);
                 }
-                delay_ms=handleTag.get_configuredDelay_ms();
+                delayActual_ms=handleTag.get_actualDelay_ms();
                 delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
 
@@ -277,6 +278,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 numberPassesFromEdit = wiederholungen.getText().toString();
 
+                if (numberPassesFromEdit.equals("0")|numberPassesFromEdit.equals("")|Integer.parseInt(numberPassesFromEdit)>908){
+                    handleTag.stopDevice(currentTag, cic);//Batterie wird ausgeschaltet
+                    startStopText.setText("Fehlerhafte Eingabe für Anzahl der Wiederholungen: erlaubt sind Werte von 1 bis 908");
+                    return;
+                }
+
                 Date now = new Date();
                 long millisNow = now.getTime();
 
@@ -293,16 +300,12 @@ public class MainActivity extends AppCompatActivity {
 
                 long millisStart = missionStart.getTime();
                 long delay_min = (millisStart - millisNow) / 60000;
-                if(delay_min>=0) {
+                if(delay_min==0){
+                    delay_min=1;
+                }
+                if(delay_min>0) {
                     handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
                     startStopText.setText(getString(R.string.start_mission_text));
-
-                    //if (missionStatus_val[0].equals("Sampling in Progress ") ) {
-                        //startStopText.setText("Zum Starten einer Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
-                    //    startStopText.setText("Mission gestartet mit: " + numberPassesFromEdit + " Wiederholungen, " + frequencyFromSpinner + "  Messintervall, erster Messwert am " + getStartTimeString(System.currentTimeMillis(), delay_min * 60 * 1000)+" (noch "+delayCountdown+" Minuten)");
-                   // } else {
-                   //     startStopText.setText("Starten der Mission leider fehlgeschlagen (" + handleTag.getText_val() + " " + missionStatus_val[3] + missionStatus_val[4] + "). Bitte erneut probieren!");
-                   // }
                 } else {
                     startStopText.setText(getString(R.string.mission_in_past) + " " + getString(R.string.start_mission_text));
                 }
@@ -318,16 +321,18 @@ public class MainActivity extends AppCompatActivity {
                 if (currentTag == null) {
                     startStopText.setText(getString(R.string.tag_not_connected));
                 } else {
-                    handleTag.stopDevice(currentTag, cic);
-                if (handleTag.get_numberOfPasses() == 0 && handleTag.getText_id() != R.string.tag_connection_lost) {
-                //if (handleTag.get_numberOfPasses() == 0 && !handleTag.getText_val().equals(R.string.tag_connection_lost) {
-                    startStopText.setText(getString(R.string.mission_stopped));
-                } else {
-                    //startStopText.setText("Stoppen der Mission leider fehlgeschlagen (" + handleTag.getText_val() + ") Bitte erneut probieren!");
-                    startStopText.setText(getString(R.string.mission_stop_failed) + " (" + getString(handleTag.getText_id()) + "). " +  getString(R.string.try_again));
+                    if(numberPassesConfigured!=0 && !missionStatus_val[0].equals("Mission fertig ")) {
+                        handleTag.stopDevice(currentTag, cic);
+                        if (handleTag.get_numberOfPasses() == 0) {
+                            startStopText.setText("Mission gestoppt!");
+                        } else {
+                            startStopText.setText(getString(R.string.mission_stop_failed) + " (" + getString(handleTag.getText_id()) + "). " +  getString(R.string.try_again));
+                        }
+                        ausleseButton.callOnClick();
+                    }else{
+                        startStopText.setText("Mission bereits gestoppt");
+                    }
                 }
-                ausleseButton.callOnClick();
-            }
             }
         });
 
@@ -360,7 +365,9 @@ public class MainActivity extends AppCompatActivity {
         mTimer = new Runnable() {
             @Override
             public void run() {
+
                 missionStatus_val = handleTag.get_MissionStatus_val();
+
                 currentMeasurementNumber = handleTag.get_anzahl();
                 numberPassesConfigured = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
@@ -371,47 +378,49 @@ public class MainActivity extends AppCompatActivity {
                 if(text_id != 0){
                     text_val = getString(text_id);
                 }
-                delay_ms=handleTag.get_configuredDelay_ms();
+                delayActual_ms=handleTag.get_actualDelay_ms();
                 delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
 
-                String startTimeConfigured=getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delay_ms);
-                String startTimeCountdown=getStartTimeString(System.currentTimeMillis(),delayCountdown*60*1000);
-                
+                String startTimeConfigured=getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delayActual_ms);//add conversion time (Table 4 Firmware User Guide)
                 if(!handleTag.get_frequencyStringFromMs().equals("0")){
                     if (startStopText.getText().equals(getString(R.string.scan_again))){ // | startStopText.getText().equals(getString(R.string.start_mission_text))) {
                         startStopText.setText(getString(R.string.start_mission_text));
                     }
-                    else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
+                    else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0 & !missionStatus_val[4].equals("BatError/BatOFF ")) {
                         missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.of) + " " +
                                 numberPassesConfigured + " " + getString(R.string.values) + " " + frequencyStringFromMs + " " + getString(R.string.interval));
                     }
                     else if (currentMeasurementNumber==0 && text_id == R.string.suspicious_values){
-                        missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " " + startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
-                    } else if (currentMeasurementNumber==0 && numberPassesConfigured==0){ //no mission planned or active
-                        missionStatusText.setText("");
+                            missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " "
+                                    + startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
+                    }
+                    else if (missionStatus_val[4].equals("BatError/BatOFF ") && currentMeasurementNumber!=0){
+                        missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
+                                " Messwert(e). Siehe Daten unten (nach Auslesen)");
+                    }
+                    else if (numberPassesConfigured==0){
+                        missionStatusText.setText("Missionsstatus: Keine neue Mission.");
                     }
                     else {
-                        missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.values_of) + " " + numberPassesConfigured + getString(R.string.first_val_expected) + " "
-                                                      + startTimeCountdown + " " + getString(R.string.configured) + " " +startTimeConfigured+") " + getString(R.string.with) + " " + frequencyStringFromMs + " " + getString(R.string.interval));
+//                        missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.values_of) + " "
+//                                + numberPassesConfigured + getString(R.string.first_val_expected) + " "
+//                                + startTimeCountdown + " " + getString(R.string.configured) + " " +startTimeConfigured+") "
+//                                + getString(R.string.with) + " " + frequencyStringFromMs + " " + getString(R.string.interval));
+
+                        missionStatusText.setText("Missionsstatus: Messintervall " + frequencyStringFromMs + ", "+currentMeasurementNumber+" Messwert(e) von "
+                                + numberPassesConfigured +". Erster Messwert erwartet am " + startTimeConfigured + " (noch "
+                                + delayCountdown + " Minute(n)). ");
                     }
                 }
                 text_view.setText(text_val);
-                missionStatus.setText(missionStatus_val[0]+missionStatus_val[1]+missionStatus_val[2]+missionStatus_val[3]+missionStatus_val[4]);
-
-                /*ListView listView = (ListView) findViewById(R.id.messwerteList);
-                listView.setAdapter(adapter);
-                // prevent listview from scrolling
-                if (adapter.getCount()>0) {
-                    View item = adapter.getView(0, null, listView);
-                    item.measure(0, 0);
-                    ViewGroup.LayoutParams lp = listView.getLayoutParams();
-                    lp.height = (item.getMeasuredHeight() + listView.getDividerHeight())
-                            * adapter.getCount();
-                    listView.setLayoutParams(lp);
+                if(missionStatus_val[0].equals("Mission fertig ")||(numberPassesConfigured==0 && !missionStatus_val[4].equals(""))) {
+                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + "Batterie aus" + "\n"+missionStatus_val[0] /*missionStatus_val[4]*/);
+                }else if(!missionStatus_val[4].equals("")){
+                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + "Batteriefehler" + "\n"+missionStatus_val[0]/*missionStatus_val[4]*/);
+                } else{
+                    missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + missionStatus_val[4]);
                 }
-
-                adapter.setData(handleTag.GetData());*/
 
                 mHandler.postDelayed(this, 50);
             }
@@ -503,18 +512,20 @@ public class MainActivity extends AppCompatActivity {
             numberPassesConfigured = handleTag.get_numberOfPasses();
             gesetztesIntervall = handleTag.get_frequencyStringFromMs();
             configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
-            delay_ms=handleTag.get_configuredDelay_ms();
+            delayActual_ms=handleTag.get_actualDelay_ms();
             //text_val = handleTag.getText_val();
             text_val = null;
             int text_id = handleTag.getText_id();
             if(text_id != 0){
                 text_val = getString(text_id);
             }
+
             return null;
         }
 
     }
     private String getStartTimeString(long unixTime_ms, long delay) {
+        String startTimeSeconds;
         String startTimeMinute;
         String startTimeHour;
         Calendar startTime = Calendar.getInstance();
@@ -532,7 +543,14 @@ public class MainActivity extends AppCompatActivity {
         else {
             startTimeHour=""+startTime.get(Calendar.HOUR_OF_DAY);
         }
-        String startTimeString = startTime.get(Calendar.DAY_OF_MONTH) + "." + startTimeMonth + "." + startTime.get(Calendar.YEAR) + " " + startTimeHour + ":" + startTimeMinute;
+        if(startTime.get(Calendar.SECOND)<10){
+            startTimeSeconds="0"+startTime.get(Calendar.SECOND);
+        }
+        else {
+            startTimeSeconds=""+startTime.get(Calendar.SECOND);
+        }
+
+        String startTimeString = startTime.get(Calendar.DAY_OF_MONTH) + "." + startTimeMonth + "." + startTime.get(Calendar.YEAR) + " " + startTimeHour + ":" + startTimeMinute+ ":" + startTimeSeconds;
         return startTimeString;
     }
 
