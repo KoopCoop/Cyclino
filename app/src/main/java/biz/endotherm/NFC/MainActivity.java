@@ -319,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     if(numberPassesConfigured!=0 && !missionStatus_val[0].equals("Mission fertig ")) {
                         handleTag.stopDevice(currentTag, cic);
-                        if (handleTag.get_numberOfPasses() == 0 && !handleTag.getText_val().equals("Tag connection lost")) {
+                        if (handleTag.get_numberOfPasses() == 0) {
                             startStopText.setText("Mission gestoppt!");
                         } else {
                             startStopText.setText("Stoppen der Mission leider fehlgeschlagen (" + handleTag.getText_val() + ") Bitte erneut probieren!");
