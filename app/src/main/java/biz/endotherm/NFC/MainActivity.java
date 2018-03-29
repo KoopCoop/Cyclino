@@ -393,16 +393,16 @@ public class MainActivity extends AppCompatActivity {
                                 " Messwert(e). Siehe Daten unten (nach dem Auslesen)");
                     }
                     else {
-                        missionStatusText.setText("Missionsstatus: " +currentMeasurementNumber+" Messwert(e) von "
+                        missionStatusText.setText("Missionsstatus: Messintervall " + frequencyStringFromMs + ", "+currentMeasurementNumber+" Messwert(e) von "
                                 + numberPassesConfigured +". Erster Messwert erwartet am " + startTimeConfigured + " (noch "
-                                + delayCountdown + " Minute(n)). "+ " mit " + frequencyStringFromMs + " Messintervall. ");
+                                + delayCountdown + " Minute(n)). ");
                     }
                 }
                 text_view.setText(text_val);
                 if(missionStatus_val[0].equals("Mission fertig ")||(numberPassesConfigured==0 && !missionStatus_val[4].equals(""))) {
-                    missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + "Batterie aus"/*missionStatus_val[4]*/);
+                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + "Batterie aus" + "\n"+missionStatus_val[0] /*missionStatus_val[4]*/);
                 }else if(!missionStatus_val[4].equals("")){
-                    missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + "Batteriefehler"/*missionStatus_val[4]*/);
+                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + "Batteriefehler" + "\n"+missionStatus_val[0]/*missionStatus_val[4]*/);
                 } else{
                     missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + missionStatus_val[4]);
                 }

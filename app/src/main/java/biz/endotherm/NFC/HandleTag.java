@@ -622,6 +622,10 @@ public class HandleTag {
                 frequencyByteArray[0]=16;
                 frequencyByteArray[1]=900000;
                 break;
+                default:
+                    frequencyByteArray[0]=16;
+                    frequencyByteArray[1]=900000;
+                    break;
         }
         return frequencyByteArray;
     }
