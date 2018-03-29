@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
                 if (currentTag == null) {
                     startStopText.setText("Tag nicht verbunden!");
                 } else {
-                    if(numberPassesConfigured!=0) {
+                    if(numberPassesConfigured!=0 && !missionStatus_val[0].equals("Mission fertig ")) {
                         handleTag.stopDevice(currentTag, cic);
                         if (handleTag.get_numberOfPasses() == 0 && !handleTag.getText_val().equals("Tag connection lost")) {
                             startStopText.setText("Mission gestoppt!");

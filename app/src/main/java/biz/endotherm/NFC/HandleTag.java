@@ -403,7 +403,7 @@ public class HandleTag {
         }
 
         if(missionCompleted != 0) {
-            missionstatus[1] = "Mission vollständig ";// TODO: 08.10.17 Why is this always zero?
+            missionstatus[1] = "EndOfSampleInt ";// TODO: 08.10.17 Why is this always zero?
         }
         else {
             missionstatus[1] = "";
