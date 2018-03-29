@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if (numberPassesFromEdit.equals("0")|numberPassesFromEdit.equals("")|Integer.parseInt(numberPassesFromEdit)>908){
                     handleTag.stopDevice(currentTag, cic);//Batterie wird ausgeschaltet
-                    startStopText.setText("Fehlerhafte Eingabe für Anzahl der Wiederholungen: erlaubt sind Werte von 1 bis 908");
+                    startStopText.setText(getString(R.string.invalid_measurement_number));
                     return;
                 }
 
@@ -324,13 +324,13 @@ public class MainActivity extends AppCompatActivity {
                     if(numberPassesConfigured!=0 && !missionStatus_val[0].equals("Mission fertig ")) {
                         handleTag.stopDevice(currentTag, cic);
                         if (handleTag.get_numberOfPasses() == 0) {
-                            startStopText.setText("Mission gestoppt!");
+                            startStopText.setText(getString(R.string.mission_stopped));
                         } else {
                             startStopText.setText(getString(R.string.mission_stop_failed) + " (" + getString(handleTag.getText_id()) + "). " +  getString(R.string.try_again));
                         }
                         ausleseButton.callOnClick();
                     }else{
-                        startStopText.setText("Mission bereits gestoppt");
+                        startStopText.setText(getString(R.string.mission_already_stopped));
                     }
                 }
             }
@@ -396,28 +396,26 @@ public class MainActivity extends AppCompatActivity {
                                     + startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
                     }
                     else if (missionStatus_val[4].equals("BatError/BatOFF ") && currentMeasurementNumber!=0){
-                        missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
-                                " Messwert(e). Siehe Daten unten (nach Auslesen)");
+                        missionStatusText.setText(getString(R.string.mission_status) + " " +  getString(R.string.no_new_mission) + " " +  getString(R.string.last_mission_had)
+                                +currentMeasurementNumber + getString(R.string.see_previous_data));
+                        //missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
+                        // " Messwert(e). Siehe Daten unten (nach Auslesen)");
                     }
                     else if (numberPassesConfigured==0){
-                        missionStatusText.setText("Missionsstatus: Keine neue Mission.");
+                        missionStatusText.setText(getString(R.string.mission_status) + " " +  getString(R.string.no_new_mission));
                     }
                     else {
-//                        missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.values_of) + " "
-//                                + numberPassesConfigured + getString(R.string.first_val_expected) + " "
-//                                + startTimeCountdown + " " + getString(R.string.configured) + " " +startTimeConfigured+") "
-//                                + getString(R.string.with) + " " + frequencyStringFromMs + " " + getString(R.string.interval));
 
-                        missionStatusText.setText("Missionsstatus: Messintervall " + frequencyStringFromMs + ", "+currentMeasurementNumber+" Messwert(e) von "
-                                + numberPassesConfigured +". Erster Messwert erwartet am " + startTimeConfigured + " (noch "
-                                + delayCountdown + " Minute(n)). ");
+                        missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.interval) + " " + frequencyStringFromMs + ", "
+                                +currentMeasurementNumber + " " + getString(R.string.values_of) + " "  + numberPassesConfigured + getString(R.string.first_val_expected) + " "
+                                + startTimeConfigured + " (" + getString(R.string.still) + " "  + delayCountdown + " " + getString(R.string.minutes));
                     }
                 }
                 text_view.setText(text_val);
                 if(missionStatus_val[0].equals("Mission fertig ")||(numberPassesConfigured==0 && !missionStatus_val[4].equals(""))) {
-                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + "Batterie aus" + "\n"+missionStatus_val[0] /*missionStatus_val[4]*/);
+                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + getString(R.string.battery_off) + "\n"+missionStatus_val[0] /*missionStatus_val[4]*/);
                 }else if(!missionStatus_val[4].equals("")){
-                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + "Batteriefehler" + "\n"+missionStatus_val[0]/*missionStatus_val[4]*/);
+                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + getString(R.string.battery_error) + "\n"+missionStatus_val[0]/*missionStatus_val[4]*/);
                 } else{
                     missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + missionStatus_val[4]);
                 }
