@@ -363,6 +363,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
 
                 missionStatus_val = handleTag.get_MissionStatus_val();
+
+                Log.v("Tag data", "Missionstatus_val= "+missionStatus_val[4]);
                 currentMeasurementNumber = handleTag.get_anzahl();
                 numberPassesConfigured = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
@@ -380,15 +382,15 @@ public class MainActivity extends AppCompatActivity {
                     if (startStopText.getText().equals("Bitte Sensor erneut scannen!") | startStopText.getText().equals("Zum Starten einer neuen Mission: Gewünschte Parameter auswählen und Start-Button betätigen")) {
                         startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
                     }
-                    else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0) {
+                    else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0 & !missionStatus_val[4].equals("BatError/BatOFF ")) {
                         missionStatusText.setText("Missionsstatus: " + currentMeasurementNumber + " von " + numberPassesConfigured + " Messwerten, "
                                 + frequencyStringFromMs + " Messintervall");
                     }
-                    else if (currentMeasurementNumber==0 && text_val.equals("Suspekte Sensorwerte!")){
+                    else if (currentMeasurementNumber!=0 && text_val.equals("Suspekte Sensorwerte!")){
                         missionStatusText.setText("Missionsstatus: Erster Messwert am " +startTimeConfigured
                                 + ". Erhebliche Abweichung vom konfigurierten Messintervall (" + frequencyStringFromMs + ").");
                     }
-                    else if (numberPassesConfigured==0 && currentMeasurementNumber!=0){
+                    else if (missionStatus_val[4].equals("BatError/BatOFF ") && currentMeasurementNumber!=0){
                         missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
                                 " Messwert(e). Siehe Daten unten (nach Auslesen)");
                     }
