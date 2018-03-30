@@ -652,12 +652,13 @@ public class HandleTag {
         String numberPassesString= String.valueOf(GetNumberOfPassesFromRegister());
         int frequencyRegister = GetFrequencyRegister(frequencyString, /*numberPassesString*/"0");
         Log.i("Tag data", "frequenzregister "+frequencyRegister);
-        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister, (byte) 0x00, 1, cic, 1));
+        /*writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister, (byte) 0x00, 1, cic, 1));
         Log.i("Tag data", "reset device erfolgreich!");
+        readTagData(tag, false);*/
+        //int frequencyRegister2 = GetFrequencyRegister(frequencyString, /*numberPassesString*/"0");
+        //Log.i("Tag data", "frequenzregister2 "+frequencyRegister2);
+        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister, (byte) 0x00, 1, cic, 0));
         readTagData(tag, false);
-        int frequencyRegister2 = GetFrequencyRegister(frequencyString, /*numberPassesString*/"0");
-        Log.i("Tag data", "frequenzregister2 "+frequencyRegister2);
-        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister2, (byte) 0x00, 1, cic, 0));
         Log.i("Tag data", "Batterie aus erfolgreich!");
         readTagData(tag, false);
     }
