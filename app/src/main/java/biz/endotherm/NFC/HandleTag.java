@@ -207,7 +207,7 @@ public class HandleTag {
                 (byte) 0x00, //Table53 no thermistor
         };
         if (reset == 1& battery!=0) {
-            cmd[0]=(byte) 0x80; //Table 39 Software Reset, but doesn't turns off battery (see priority)!
+            cmd[0]=(byte) 0x84; //Table 39 Software Reset, but doesn't turns off battery (see priority)!
         } else if(reset==1){
             cmd[0]=(byte) 0x04; //Table 39: turn off battery
         }
@@ -651,8 +651,14 @@ public class HandleTag {
         String frequencyString=GetFrequencyStringFromMs(GetFrequency_ms());
         String numberPassesString= String.valueOf(GetNumberOfPassesFromRegister());
         int frequencyRegister = GetFrequencyRegister(frequencyString, /*numberPassesString*/"0");
-        writeBlock((byte) 0x00, tag, cmdBlock0( (byte) 0x0, (byte) 0x00, 1, cic, 1));
-        writeBlock((byte) 0x00, tag, cmdBlock0( frequencyRegister, (byte) 0x00, 1, cic, 0));
+        Log.i("Tag data", "frequenzregister "+frequencyRegister);
+        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister, (byte) 0x00, 1, cic, 1));
+        Log.i("Tag data", "reset device erfolgreich!");
+        readTagData(tag, false);
+        int frequencyRegister2 = GetFrequencyRegister(frequencyString, /*numberPassesString*/"0");
+        Log.i("Tag data", "frequenzregister2 "+frequencyRegister2);
+        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister2, (byte) 0x00, 1, cic, 0));
+        Log.i("Tag data", "Batterie aus erfolgreich!");
         readTagData(tag, false);
     }
 
