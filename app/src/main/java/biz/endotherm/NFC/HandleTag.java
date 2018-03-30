@@ -116,7 +116,6 @@ public class HandleTag {
                     Calendar cal = Calendar.getInstance();
                     cal.setTimeInMillis(GetSetUnixTime() * 1000);
                     cal.add(Calendar.MILLISECOND, (int) delayActual_ms);//Mission start time
-                    Log.i("Tag data", "delay actual: "+delayActual_ms);
                     firstMeasurementTime = cal.getTimeInMillis();//For CIC filter, measurement takes 16384ms for accuracy>14bit (Firmware User guide, Table 4)
 
                     if (currentMeasurementNumber > 908) {//default for factory fresh chips is bigger
@@ -181,7 +180,7 @@ public class HandleTag {
                     }
                     byte[] ack = writeTag(cmd, block);
 
-                    Log.i("Tag data", "ack= " + bytesToHex(ack));
+                    //Log.i("Tag data", "ack= " + bytesToHex(ack));
                     try {
                         nfcv_senseTag.close();
                     } catch (IOException e) {
