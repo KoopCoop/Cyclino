@@ -395,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else if (missionStatus_val[4].equals("BatError/BatOFF ") && currentMeasurementNumber!=0){
                         missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
-                                " Messwert(e). Siehe Daten unten (nach Auslesen)");
+                                " Messwert(e) mit " + frequencyStringFromMs + " Messintervall. Siehe Daten unten (nach Auslesen)");
                     }
                     else if (numberPassesConfigured==0){
                         missionStatusText.setText("Missionsstatus: Keine neue Mission.");

@@ -647,16 +647,10 @@ public class HandleTag {
     }
 
     public void stopDevice(Tag tag, int cic) {
-        String frequencyString=GetFrequencyStringFromMs(GetFrequency_ms());
-        String numberPassesString= String.valueOf(GetNumberOfPassesFromRegister());
-        int frequencyRegister = GetFrequencyRegister(frequencyString, /*numberPassesString*/"0");
-        Log.i("Tag data", "frequenzregister "+frequencyRegister);
-        /*writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister, (byte) 0x00, 1, cic, 1));
+        /*writeBlock((byte) 0x00, tag, cmdBlock0(block0[4], block0[5], 1, cic, 1));
         Log.i("Tag data", "reset device erfolgreich!");
         readTagData(tag, false);*/
-        //int frequencyRegister2 = GetFrequencyRegister(frequencyString, /*numberPassesString*/"0");
-        //Log.i("Tag data", "frequenzregister2 "+frequencyRegister2);
-        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister, (byte) 0x00, 1, cic, 0));
+        writeBlock((byte) 0x00, tag, cmdBlock0(block0[4]& 0x1F, (byte) 0x00, 1, cic, 0));//set number of p
         readTagData(tag, false);
         Log.i("Tag data", "Batterie aus erfolgreich!");
         readTagData(tag, false);
