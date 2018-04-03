@@ -115,7 +115,6 @@ public class HandleTag {
                     Calendar cal = Calendar.getInstance();
                     cal.setTimeInMillis(GetSetUnixTime() * 1000);
                     cal.add(Calendar.MILLISECOND, (int) delayActual_ms);//Mission start time
-                    Log.i("Tag data", "delay actual: "+delayActual_ms);
                     firstMeasurementTime = cal.getTimeInMillis();//For CIC filter, measurement takes 16384ms for accuracy>14bit (Firmware User guide, Table 4)
 
                     if (currentMeasurementNumber > 908) {//default for factory fresh chips is bigger
@@ -185,7 +184,7 @@ public class HandleTag {
                     }
                     byte[] ack = writeTag(cmd, block);
 
-                    Log.i("Tag data", "ack= " + bytesToHex(ack));
+                    //Log.i("Tag data", "ack= " + bytesToHex(ack));
                     try {
                         nfcv_senseTag.close();
                     } catch (IOException e) {
@@ -213,7 +212,7 @@ public class HandleTag {
                 (byte) 0x00, //Table53 no thermistor
         };
         if (reset == 1& battery!=0) {
-            cmd[0]=(byte) 0x80; //Table 39 Software Reset, but doesn't turns off battery (see priority)!
+            cmd[0]=(byte) 0x84; //Table 39 Software Reset, but doesn't turns off battery (see priority)!
         } else if(reset==1){
             cmd[0]=(byte) 0x04; //Table 39: turn off battery
         }
@@ -659,8 +658,15 @@ public class HandleTag {
         String frequencyString=GetFrequencyStringFromMs(GetFrequency_ms());
         String numberPassesString= String.valueOf(GetNumberOfPassesFromRegister());
         int frequencyRegister = GetFrequencyRegister(frequencyString, /*numberPassesString*/"0");
-        writeBlock((byte) 0x00, tag, cmdBlock0( (byte) 0x0, (byte) 0x00, 1, cic, 1));
-        writeBlock((byte) 0x00, tag, cmdBlock0( frequencyRegister, (byte) 0x00, 1, cic, 0));
+        Log.i("Tag data", "frequenzregister "+frequencyRegister);
+        /*writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister, (byte) 0x00, 1, cic, 1));
+        Log.i("Tag data", "reset device erfolgreich!");
+        readTagData(tag, false);*/
+        //int frequencyRegister2 = GetFrequencyRegister(frequencyString, /*numberPassesString*/"0");
+        //Log.i("Tag data", "frequenzregister2 "+frequencyRegister2);
+        writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister, (byte) 0x00, 1, cic, 0));
+        readTagData(tag, false);
+        Log.i("Tag data", "Batterie aus erfolgreich!");
         readTagData(tag, false);
     }
 
@@ -727,7 +733,7 @@ public class HandleTag {
     }
 
     //parsing function
-    final private static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    /*final private static char[] hexArray = "0123456789ABCDEF".toCharArray();
     private static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 3];
         for ( int j = 1; j < bytes.length; j++ ) {
@@ -735,6 +741,16 @@ public class HandleTag {
             hexChars[j * 3] = hexArray[v >>> 4];
             hexChars[j * 3 + 1] = hexArray[v & 0x0F];
             hexChars[j * 3 + 2] = ' ';
+        }
+        return new String(hexChars);
+    }*/
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
     }

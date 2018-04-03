@@ -277,37 +277,43 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 numberPassesFromEdit = wiederholungen.getText().toString();
-
-                if (numberPassesFromEdit.equals("0")|numberPassesFromEdit.equals("")|Integer.parseInt(numberPassesFromEdit)>908){
-                    handleTag.stopDevice(currentTag, cic);//Batterie wird ausgeschaltet
-                    startStopText.setText(getString(R.string.invalid_measurement_number));
-                    return;
+                missionStatus_val=handleTag.get_MissionStatus_val();
+                if (numberPassesFromEdit.equals("0") || numberPassesFromEdit.equals("") || Integer.parseInt(numberPassesFromEdit) > 908) {
+                    if(!missionStatus_val[4].equals("BatError/BatOFF ")) {
+                        handleTag.stopDevice(currentTag, cic);//Batterie wird ausgeschaltet
+                        startStopText.setText(getString(R.string.invalid_measurement_number));
+                        handleTag.readTagData(currentTag,true);
+                        missionStatus_val=handleTag.get_MissionStatus_val();
+                    } else{
+                        startStopText.setText(getString(R.string.invalid_measurement_number));
+                    }
                 }
+                else{
 
-                Date now = new Date();
-                long millisNow = now.getTime();
+                    Date now = new Date();
+                    long millisNow = now.getTime();
 
-                DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
-                TimePicker timePicker = (TimePicker) findViewById(R.id.startTimePicker);
+                    DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
+                    TimePicker timePicker = (TimePicker) findViewById(R.id.startTimePicker);
 
-                int startYear = datePicker.getYear()-1900;
-                int startMonth = datePicker.getMonth();
-                int startDay = datePicker.getDayOfMonth();
-                int startHour = timePicker.getCurrentHour();
-                int startMinute = timePicker.getCurrentMinute();
+                    int startYear = datePicker.getYear() - 1900;
+                    int startMonth = datePicker.getMonth();
+                    int startDay = datePicker.getDayOfMonth();
+                    int startHour = timePicker.getCurrentHour();
+                    int startMinute = timePicker.getCurrentMinute();
 
-                Date missionStart = new Date(startYear, startMonth, startDay, startHour, startMinute);
-
-                long millisStart = missionStart.getTime();
-                long delay_min = (millisStart - millisNow) / 60000;
-                if(delay_min==0){
-                    delay_min=1;
-                }
-                if(delay_min>0) {
-                    handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
-                    startStopText.setText(getString(R.string.start_mission_text));
-                } else {
-                    startStopText.setText(getString(R.string.mission_in_past) + " " + getString(R.string.start_mission_text));
+                    Date missionStart = new Date(startYear, startMonth, startDay, startHour, startMinute);
+                    long millisStart = missionStart.getTime();
+                    long delay_min = (millisStart - millisNow) / 60000;
+                    if (delay_min == 0) {
+                        delay_min = 1;
+                    }
+                    if (delay_min > 0) {
+                        handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
+                        startStopText.setText(getString(R.string.start_mission_text));
+                    } else {
+                        startStopText.setText(getString(R.string.mission_in_past) + " " + getString(R.string.start_mission_text));
+                    }
                 }
             }
         });
