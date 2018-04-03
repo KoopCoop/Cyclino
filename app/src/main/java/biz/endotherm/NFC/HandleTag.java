@@ -341,7 +341,7 @@ public class HandleTag {
         // check if frequency (originally set) differs by more than 10%.
         // That means the mission was unexpectedly stopped or the measurement time intervals were stretched, both due to low battery voltage.
         // In this case, don't show any values, but stop the mission, since we don't know the date/time values of the recorded temperatures.
-        if(anzahl!=numberPassesConfigured && anzahl>1) { // either the mission is still running or it stopped/stretched unexpectedly
+        if(numberPassesConfigured!=0 && anzahl!=numberPassesConfigured && anzahl>1) { // either the mission is still running or it stopped/stretched unexpectedly
             if (frequency != 0) {
                 if ((lastTime-firstMeasurementTime-0.1*(delayActual_ms))>1.1*frequency*anzahl || (lastTime-firstMeasurementTime+(delayActual_ms)*0.1) < (0.9*frequency*(anzahl-1))) { // normally, only the first should occur. To be sure, include second (weak) check as well.
                     return false; //stretched unexpectedly, this could also mean that it aborted
