@@ -72,7 +72,8 @@ public class HandleTag {
     //read data
     public void readTagData(Tag tag, boolean roundTemp) {
         if (tag == null) {
-            text_val = "Tag not connected";
+            //text_val = "Tag not connected";
+            text_id = R.string.tag_not_connected;
             return;
         } else {
             byte[] id = tag.getId();
@@ -147,7 +148,10 @@ public class HandleTag {
             }
             try {
                 nfcv_senseTag.close();
-                text_val = "Sensor erfolgreich getrennt";
+                if (text_id != R.string.suspicious_values){ // otherwise, suspicious_values is overwritten by tag_disconnection_successful
+                    //text_val = "Sensor erfolgreich getrennt";
+                    text_id = R.string.tag_disconnection_successful;
+                }
             } catch (IOException e) {
                 Log.i("Tag data", "transceive failed and stopped");
                 text_id = R.string.tag_disconnection_failed;

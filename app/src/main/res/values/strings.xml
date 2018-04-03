@@ -1,27 +1,13 @@
 <resources>
     <string name="app_name">Cyclino</string>
 
-    <string-array name="frequenzspinnerEintraege">
-        <item>15 min</item>
-        <item>30 s</item>
-        <item>1 min</item>
-        <item>2 min</item>
-        <item>5 min</item>
-        <item>10 min</item>
-        <item>30 min</item>
-        <item>1 h</item>
-        <item>2 h</item>
-        <item>5 h</item>
-        <item>10 h</item>
-        <item>24 h</item>
-    </string-array>
-
     <string name="tag_not_connected">Sensor nicht verbunden!</string>
     <string name="tag_disconnected">Sensor getrennt</string>
     <string name="tag_connected">Sensor verbunden</string>
     <string name="tag_connection_lost">Verbindung zum Sensor verloren!</string>
     <string name="suspicious_values">Suspekte Sensorwerte!</string>
     <string name="tag_disconnection_failed">Trennung des Sensors fehlgeschlagen!</string>
+    <string name="tag_disconnection_successful">Sensor erfolgreich getrennt</string>
     <string name="tag_transfer_failed">Datenübertragung fehlgeschlagen!</string>
 
     <string name="scan_again">Bitte Sensor erneut scannen!</string>
@@ -79,6 +65,19 @@
     <string name="config">Konfig</string>
     <string name="calibration2">Kalibration</string>
 
-
+    <string-array name="frequenzspinnerEintraege">
+        <item>15 min</item>
+        <item>30 s</item>
+        <item>1 min</item>
+        <item>2 min</item>
+        <item>5 min</item>
+        <item>10 min</item>
+        <item>30 min</item>
+        <item>1 h</item>
+        <item>2 h</item>
+        <item>5 h</item>
+        <item>10 h</item>
+        <item>24 h</item>
+    </string-array>
 
 </resources>
