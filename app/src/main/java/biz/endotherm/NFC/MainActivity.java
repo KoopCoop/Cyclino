@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.Calendar;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Build;
 import android.widget.Switch;
 import android.widget.TabWidget;
@@ -67,8 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
     //display variables
     String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="",
-            frequencyStringFromMs="0",
-            numberPassesFromEdit="";
+            frequencyStringFromMs="0", numberPassesFromEdit="";
     int currentMeasurementNumber = 0;
     Calendar configuredMissionTimestamp;
     long delayActual_ms=0;
@@ -93,21 +93,21 @@ public class MainActivity extends AppCompatActivity {
         host.setup();
 
         //Tab 1
-        TabHost.TabSpec spec = host.newTabSpec("Mission");
+        TabHost.TabSpec spec = host.newTabSpec(getString(R.string.mission));
         spec.setContent(R.id.Mission);
-        spec.setIndicator("Mission");
+        spec.setIndicator(getString(R.string.mission));
         host.addTab(spec);
 
         //Tab 2
-        spec = host.newTabSpec("Konfig");
+        spec = host.newTabSpec(getString(R.string.config));
         spec.setContent(R.id.Konfig);
-        spec.setIndicator("Konfig");
+        spec.setIndicator(getString(R.string.config));
         host.addTab(spec);
 
         //Tab 3
-        spec = host.newTabSpec("Kalibration");
+        spec = host.newTabSpec(getString(R.string.calibration2));
         spec.setContent(R.id.Kalibration);
-        spec.setIndicator("Kalibration");
+        spec.setIndicator(getString(R.string.calibration2));
         host.addTab(spec);
 
         text_view = (TextView) findViewById(R.id.textView);
@@ -152,11 +152,11 @@ public class MainActivity extends AppCompatActivity {
 
         nfc = NfcAdapter.getDefaultAdapter(this);
         if (nfc == null) {
-            text_view.setText("No NFC!!");
-            text_val="No NFC!!";}
+            text_view.setText(getString(R.string.no_nfc));
+            text_val=getString(R.string.no_nfc);}
         if (!nfc.isEnabled()) {
-            text_view.setText("NFC is disabled.");
-            text_val="NFC is disabled.";
+            text_view.setText(getString(R.string.nfc_disabled));
+            text_val=getString(R.string.nfc_disabled);
         }
         mpendingIntent = PendingIntent.getActivity(
                 this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
@@ -200,7 +200,12 @@ public class MainActivity extends AppCompatActivity {
                 currentMeasurementNumber = handleTag.get_anzahl();
                 numberPassesConfigured = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
-                text_val=handleTag.getText_val();
+                //text_val=handleTag.getText_val();
+                text_val = null;
+                int text_id = handleTag.getText_id();
+                if(text_id != 0){
+                    text_val = getString(text_id);
+                }
                 delayActual_ms=handleTag.get_actualDelay_ms();
                 delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
@@ -249,19 +254,19 @@ public class MainActivity extends AppCompatActivity {
                     {
                         android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                         clipboard.setText(textToCopy);
-                        Toast.makeText(getApplicationContext(), "Daten in Zwischenablage kopiert", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), getString(R.string.data_copied), Toast.LENGTH_SHORT).show();
                     }
                     else
                     {
                         android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                         android.content.ClipData clipData = android.content.ClipData.newPlainText("Clip",textToCopy);
-                        Toast.makeText(getApplicationContext(), "Daten in Zwischenablage kopiert", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), getString(R.string.data_copied), Toast.LENGTH_SHORT).show();
                         clipboard.setPrimaryClip(clipData);
                     }
                 }
                 else
                 {
-                    Toast.makeText(getApplicationContext(), "Keine Daten ausgewählt", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.no_data_selected), Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -276,11 +281,11 @@ public class MainActivity extends AppCompatActivity {
                 if (numberPassesFromEdit.equals("0") || numberPassesFromEdit.equals("") || Integer.parseInt(numberPassesFromEdit) > 908) {
                     if(!missionStatus_val[4].equals("BatError/BatOFF ")) {
                         handleTag.stopDevice(currentTag, cic);//Batterie wird ausgeschaltet
-                        startStopText.setText("Fehlerhafte Eingabe für Anzahl der Wiederholungen: erlaubt sind Werte von 1 bis 908");
+                        startStopText.setText(getString(R.string.invalid_measurement_number));
                         handleTag.readTagData(currentTag,true);
                         missionStatus_val=handleTag.get_MissionStatus_val();
                     } else{
-                        startStopText.setText("Fehlerhafte Eingabe für Anzahl der Wiederholungen: erlaubt sind Werte von 1 bis 908");
+                        startStopText.setText(getString(R.string.invalid_measurement_number));
                     }
                 }
                 else{
@@ -298,7 +303,6 @@ public class MainActivity extends AppCompatActivity {
                     int startMinute = timePicker.getCurrentMinute();
 
                     Date missionStart = new Date(startYear, startMonth, startDay, startHour, startMinute);
-
                     long millisStart = missionStart.getTime();
                     long delay_min = (millisStart - millisNow) / 60000;
                     if (delay_min == 0) {
@@ -306,9 +310,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if (delay_min > 0) {
                         handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
-                        startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
+                        startStopText.setText(getString(R.string.start_mission_text));
                     } else {
-                        startStopText.setText("Der Missionsbeginn läge in der Vergangenheit. Bitte überdenken! Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
+                        startStopText.setText(getString(R.string.mission_in_past) + " " + getString(R.string.start_mission_text));
                     }
                 }
             }
@@ -321,18 +325,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (currentTag == null) {
-                    startStopText.setText("Tag nicht verbunden!");
+                    startStopText.setText(getString(R.string.tag_not_connected));
                 } else {
                     if(numberPassesConfigured!=0 && !missionStatus_val[0].equals("Mission fertig ")) {
                         handleTag.stopDevice(currentTag, cic);
                         if (handleTag.get_numberOfPasses() == 0) {
-                            startStopText.setText("Mission gestoppt!");
+                            startStopText.setText(getString(R.string.mission_stopped));
                         } else {
-                            startStopText.setText("Stoppen der Mission leider fehlgeschlagen (" + handleTag.getText_val() + ") Bitte erneut probieren!");
+                            startStopText.setText(getString(R.string.mission_stop_failed) + " (" + getString(handleTag.getText_id()) + "). " +  getString(R.string.try_again));
                         }
                         ausleseButton.callOnClick();
                     }else{
-                        startStopText.setText("Mission bereits gestoppt");
+                        startStopText.setText(getString(R.string.mission_already_stopped));
                     }
                 }
             }
@@ -351,13 +355,13 @@ public class MainActivity extends AppCompatActivity {
                     handleTag.setCalibrationOffset(currentTag, newCalibrationOffset);
                     ausleseButton.callOnClick();
                     if (handleTag.GetSetCalibrationOffset() == newCalibrationOffset){
-                        calibrationText.setText("Neue Kalibration gesetzt");
+                        calibrationText.setText(getString(R.string.calibration_success));
                     } else{
-                        calibrationText.setText("Setzen der Kalibration fehlgeschlagen");
+                        calibrationText.setText(getString(R.string.calibration_error));
                     }
                 }
                 else{
-                    calibrationText.setText("Kalibration nicht möglich. Bitte gültige Kalibrationswerte eintragen!");
+                    calibrationText.setText(getString(R.string.calibration_invalid));
                 }
 
             }
@@ -373,44 +377,51 @@ public class MainActivity extends AppCompatActivity {
                 currentMeasurementNumber = handleTag.get_anzahl();
                 numberPassesConfigured = handleTag.get_numberOfPasses();
                 frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
-                text_val=handleTag.getText_val();
+                //text_val=handleTag.getText_val();
+                //text_val=getString(handleTag.getText_id());
+                text_val = null;
+                int text_id = handleTag.getText_id();
+                if(text_id != 0){
+                    text_val = getString(text_id);
+                }
                 delayActual_ms=handleTag.get_actualDelay_ms();
-
                 delayCountdown=handleTag.get_delayCountdown();
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
 
                 String startTimeConfigured=getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delayActual_ms);//add conversion time (Table 4 Firmware User Guide)
-
                 if(!handleTag.get_frequencyStringFromMs().equals("0")){
-                    if (startStopText.getText().equals("Bitte Sensor erneut scannen!") | startStopText.getText().equals("Zum Starten einer neuen Mission: Gewünschte Parameter auswählen und Start-Button betätigen")) {
-                        startStopText.setText("Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen");
+                    if (startStopText.getText().equals(getString(R.string.scan_again))){ // | startStopText.getText().equals(getString(R.string.start_mission_text))) {
+                        startStopText.setText(getString(R.string.start_mission_text));
                     }
                     else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0 & !missionStatus_val[4].equals("BatError/BatOFF ")) {
-                        missionStatusText.setText("Missionsstatus: " + currentMeasurementNumber + " von " + numberPassesConfigured + " Messwerten, "
-                                + frequencyStringFromMs + " Messintervall");
+                        missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.of) + " " +
+                                numberPassesConfigured + " " + getString(R.string.values) + " " + frequencyStringFromMs + " " + getString(R.string.interval));
                     }
-                    else if (currentMeasurementNumber!=0 && text_val.equals("Suspekte Sensorwerte!")){
-                        missionStatusText.setText("Missionsstatus: Erster Messwert am " +startTimeConfigured
-                                + ". Erhebliche Abweichung vom konfigurierten Messintervall (" + frequencyStringFromMs + ").");
+                    else if (currentMeasurementNumber==0 && text_id == R.string.suspicious_values){
+                            missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " "
+                                    + startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
                     }
                     else if (missionStatus_val[4].equals("BatError/BatOFF ") && currentMeasurementNumber!=0){
-                        missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
-                                " Messwert(e) mit " + frequencyStringFromMs + " Messintervall. Siehe Daten unten (nach Auslesen)");
+                        missionStatusText.setText(getString(R.string.mission_status) + " " +  getString(R.string.no_new_mission) + " " +  getString(R.string.last_mission_had)
+                                +currentMeasurementNumber + getString(R.string.see_previous_data));
+                        //missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
+                        // " Messwert(e). Siehe Daten unten (nach Auslesen)");
                     }
                     else if (numberPassesConfigured==0){
-                        missionStatusText.setText("Missionsstatus: Keine neue Mission.");
+                        missionStatusText.setText(getString(R.string.mission_status) + " " +  getString(R.string.no_new_mission));
                     }
                     else {
-                        missionStatusText.setText("Missionsstatus: Messintervall " + frequencyStringFromMs + ", "+currentMeasurementNumber+" Messwert(e) von "
-                                + numberPassesConfigured +". Erster Messwert erwartet am " + startTimeConfigured + " (noch "
-                                + delayCountdown + " Minute(n)). ");
+
+                        missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.interval) + " " + frequencyStringFromMs + ", "
+                                +currentMeasurementNumber + " " + getString(R.string.values_of) + " "  + numberPassesConfigured + getString(R.string.first_val_expected) + " "
+                                + startTimeConfigured + " (" + getString(R.string.still) + " "  + delayCountdown + " " + getString(R.string.minutes));
                     }
                 }
                 text_view.setText(text_val);
                 if(missionStatus_val[0].equals("Mission fertig ")||(numberPassesConfigured==0 && !missionStatus_val[4].equals(""))) {
-                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + "Batterie aus" + "\n"+missionStatus_val[0] /*missionStatus_val[4]*/);
+                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + getString(R.string.battery_off) + "\n"+missionStatus_val[0] /*missionStatus_val[4]*/);
                 }else if(!missionStatus_val[4].equals("")){
-                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + "Batteriefehler" + "\n"+missionStatus_val[0]/*missionStatus_val[4]*/);
+                    missionStatus.setText(missionStatus_val[3] + missionStatus_val[1] + missionStatus_val[2] + getString(R.string.battery_error) + "\n"+missionStatus_val[0]/*missionStatus_val[4]*/);
                 } else{
                     missionStatus.setText(missionStatus_val[0] + missionStatus_val[1] + missionStatus_val[2] + missionStatus_val[3] + missionStatus_val[4]);
                 }
@@ -506,7 +517,13 @@ public class MainActivity extends AppCompatActivity {
             gesetztesIntervall = handleTag.get_frequencyStringFromMs();
             configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
             delayActual_ms=handleTag.get_actualDelay_ms();
-            text_val = handleTag.getText_val();
+            //text_val = handleTag.getText_val();
+            text_val = null;
+            int text_id = handleTag.getText_id();
+            if(text_id != 0){
+                text_val = getString(text_id);
+            }
+
             return null;
         }
 

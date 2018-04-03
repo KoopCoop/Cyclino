@@ -1,6 +1,70 @@
 <resources>
     <string name="app_name">Cyclino</string>
 
+    <string name="tag_not_connected">Sensor nicht verbunden!</string>
+    <string name="tag_disconnected">Sensor getrennt</string>
+    <string name="tag_connected">Sensor verbunden</string>
+    <string name="tag_connection_lost">Verbindung zum Sensor verloren!</string>
+    <string name="suspicious_values">Suspekte Sensorwerte!</string>
+    <string name="tag_disconnection_failed">Trennung des Sensors fehlgeschlagen!</string>
+    <string name="tag_disconnection_successful">Sensor erfolgreich getrennt</string>
+    <string name="tag_transfer_failed">Datenübertragung fehlgeschlagen!</string>
+
+    <string name="scan_again">Bitte Sensor erneut scannen!</string>
+    <string name="no_nfc">No NFC!!</string>
+    <string name="nfc_disabled">NFC is disabled.</string>
+
+    <string name="data_copied">Daten in Zwischenablage kopiert</string>
+    <string name="no_data_selected">Keine Daten ausgewählt</string>
+    <string name="mission_stopped">Mission gestoppt!</string>
+    <string name="mission_already_stopped">Mission bereits gestoppt.</string>
+    <string name="mission_stop_failed">Stoppen der Mission leider fehlgeschlagen</string>
+    <string name="try_again">Bitte erneut probieren!</string>
+
+    <string name="calibration_success">Neue Kalibration gesetzt</string>
+    <string name="calibration_error">Setzen der Kalibration fehlgeschlagen</string>
+    <string name="calibration_invalid">Kalibration nicht möglich. Bitte gültige Kalibrationswerte eintragen!</string>
+
+    <string name="start_mission_text">Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen.</string>
+    <string name="mission_in_past">Der Missionsbeginn läge in der Vergangenheit. Bitte überdenken!</string>
+    <string name="invalid_measurement_number">Fehlerhafte Eingabe für Anzahl der Wiederholungen: erlaubt sind Werte von 1 bis 908.</string>
+    <string name="mission_status">Missionsstatus:</string>
+    <string name="no_new_mission">Keine neue Mission.</string>
+    <string name="last_mission_had">Letzte Mission hatte</string>
+    <string name="see_previous_data">Messwert(e). Siehe Daten unten (nach Auslesen)</string>
+    <string name="of"> von </string>
+    <string name="values"> Messwerten, </string>
+    <string name="interval">Messintervall</string>
+    <string name="first_val">Erster Messwert am </string>
+    <string name="deviating_val">. Erhebliche Abweichung vom konfigurierten Messintervall</string>
+    <string name="values_of"> Messwert(e) von </string>
+    <string name="first_val_expected">. Erster Messwert erwartet am </string>
+    <string name="configured"> (konfiguriert wurde </string>
+    <string name="with">mit</string>
+    <string name="still">noch</string>
+    <string name="minutes">Minute(n)).</string>
+    <string name="battery_off">Batterie aus</string>
+    <string name="battery_error">Batteriefehler</string>
+
+    <string name="nfc_tag">NFC-Tag</string>
+    <string name="data_status">Daten-Status</string>
+    <string name="read">Auslesen</string>
+    <string name="copy">Daten kopieren</string>
+    <string name="round">Werte runden</string>
+    <string name="stop">Stop</string>
+    <string name="start">Start</string>
+    <string name="new_mission">Neue Mission starten mit </string>
+    <string name="interval2">Messintervall, </string>
+    <string name="number_of_measurements">908</string>
+    <string name="repetitions">Wiederholungen am</string>
+    <string name="calibration">Kalibration: </string>
+    <string name="corresponds_to">entspricht Cyclino-Wert:</string>
+    <string name="set">Setzen</string>
+
+    <string name="mission">Mission</string>
+    <string name="config">Konfig</string>
+    <string name="calibration2">Kalibration</string>
+
     <string-array name="frequenzspinnerEintraege">
         <item>15 min</item>
         <item>30 s</item>
@@ -15,8 +79,5 @@
         <item>10 h</item>
         <item>24 h</item>
     </string-array>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
