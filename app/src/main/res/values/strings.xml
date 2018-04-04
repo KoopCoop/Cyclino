@@ -67,6 +67,9 @@
 
 
     <string name="title_activity_settings">Einstellungen</string>
+    <string name="preference_aktienliste_title">Liste der Finanzinstrumente</string>
+    <string name="preference_aktienliste_key">aktienliste</string>
+    <string name="preference_aktienliste_default">SAP.de,BMW.de</string>
 
 
     <string-array name="frequenzspinnerEintraege">
