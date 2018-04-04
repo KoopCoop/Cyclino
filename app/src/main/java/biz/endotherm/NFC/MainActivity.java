@@ -225,16 +225,17 @@ public class MainActivity extends AppCompatActivity {
                 ListView listView = (ListView) findViewById(R.id.messwerteList);
                 listView.setAdapter(adapter);
                 // prevent listview from scrolling
-
-                if (adapter.getCount()>0 && missionTimingRight) {
-                    View item = adapter.getView(0, null, listView);
-                    item.measure(0, 0);
-                    ViewGroup.LayoutParams lp = listView.getLayoutParams();
-                    lp.height = (item.getMeasuredHeight() + listView.getDividerHeight())
-                            * adapter.getCount();
-                    listView.setLayoutParams(lp);
+                if(missionTimingRight) {
+                    if (adapter.getCount() > 0) {
+                        View item = adapter.getView(0, null, listView);
+                        item.measure(0, 0);
+                        ViewGroup.LayoutParams lp = listView.getLayoutParams();
+                        lp.height = (item.getMeasuredHeight() + listView.getDividerHeight())
+                                * adapter.getCount();
+                        listView.setLayoutParams(lp);
+                    }
+                    adapter.setData(handleTag.GetData());
                 }
-                adapter.setData(handleTag.GetData());
 
             }
         });
