@@ -400,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
                         missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.of) + " " +
                                 numberPassesConfigured + " " + getString(R.string.values) + " " + frequencyStringFromMs + " " + getString(R.string.interval));
                     }
-                    else if (missionTimingRight==false & !missionStatus_val[4].equals("BatError/BatOFF ")){
+                    else if (missionTimingRight==false & !missionStatus_val[4].equals("BatError/BatOFF ")){//sollte nie passieren
                             missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " "
                                     + startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
                     }
@@ -410,7 +410,7 @@ public class MainActivity extends AppCompatActivity {
                         //missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
                         // " Messwert(e). Siehe Daten unten (nach Auslesen)");
                     }
-                    else if (missionTimingRight==false & missionStatus_val[4].equals("BatError/BatOFF ") & currentMeasurementNumber==0){
+                    else if (!missionTimingRight & missionStatus_val[4].equals("BatError/BatOFF ")){
                         missionStatusText.setText(getString(R.string.mission_status) + " " +  getString(R.string.no_new_mission) + " " +  getString(R.string.last_mission_had) + " "
                                 + getString(R.string.suspicious_values2));
                         //missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte suspekte Sensorwerte "

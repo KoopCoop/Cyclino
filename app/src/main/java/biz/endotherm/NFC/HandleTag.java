@@ -155,6 +155,7 @@ public class HandleTag {
                        text_id = R.string.suspicious_values;
                        //text_val = "Suspekte Sensorwerte!";
                        setMissionTimingRight(false);
+                       stopDevice(tag, cic);
                     }
                 }
             }
@@ -750,7 +751,7 @@ public class HandleTag {
     }
 
     public boolean GetMissionTimingRight(){
-        int missionTimingRightInt=(block236[5]& 0x80);
+        int missionTimingRightInt=(block236[5]& 0x80) >> 7;
         if(missionTimingRightInt==1){
             return true;
         } else{
