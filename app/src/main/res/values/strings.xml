@@ -6,6 +6,7 @@
     <string name="tag_connected">Sensor verbunden</string>
     <string name="tag_connection_lost">Verbindung zum Sensor verloren!</string>
     <string name="suspicious_values">Suspekte Sensorwerte!</string>
+    <string name="suspicious_values2">suspekte Sensorwerte</string>
     <string name="tag_disconnection_failed">Trennung des Sensors fehlgeschlagen!</string>
     <string name="tag_disconnection_successful">Sensor erfolgreich getrennt</string>
     <string name="tag_transfer_failed">Datenübertragung fehlgeschlagen!</string>
