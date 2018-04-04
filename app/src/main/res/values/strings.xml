@@ -65,6 +65,10 @@
     <string name="config">Konfig</string>
     <string name="calibration2">Kalibration</string>
 
+
+    <string name="title_activity_settings">Einstellungen</string>
+
+
     <string-array name="frequenzspinnerEintraege">
         <item>15 min</item>
         <item>30 s</item>

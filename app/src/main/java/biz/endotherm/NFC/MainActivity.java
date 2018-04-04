@@ -5,9 +5,12 @@ import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Calendar;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Build;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Switch;
 import android.widget.TabWidget;
 import android.widget.TableLayout;
@@ -162,6 +165,24 @@ public class MainActivity extends AppCompatActivity {
                 this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
     }
+
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+            default:
+                 return super.onOptionsItemSelected(item);
+        }
+    }
+
 
     @Override
     protected void onNewIntent(Intent intent) {
