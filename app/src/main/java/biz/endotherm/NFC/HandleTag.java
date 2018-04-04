@@ -155,7 +155,6 @@ public class HandleTag {
                        text_id = R.string.suspicious_values;
                        //text_val = "Suspekte Sensorwerte!";
                        setMissionTimingRight(false);
-                       stopDevice(tag, cic);
                     }
                 }
             }
