@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string-array name="frequenzspinnerEintraege">
+    <item>@string/t30s</item>
+    <item>@string/t1min</item>
+    <item>@string/t2min</item>
+    <item>@string/t5min</item>
+    <item>@string/t10min</item>
+    <item>@string/t15min</item>
+    <item>@string/t30min</item>
+    <item>@string/t1h</item>
+    <item>@string/t2h</item>
+    <item>@string/t5h</item>
+    <item>@string/t10h</item>
+    <item>@string/t24h</item>
+</string-array>
+</resources>

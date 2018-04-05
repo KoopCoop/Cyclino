@@ -215,8 +215,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:ems="8"
+                                android:text="908"
                                 android:inputType="number"
-                                android:text="@string/number_of_measurements"
                                 android:textColor="@android:color/black" />
 
                             <TextView

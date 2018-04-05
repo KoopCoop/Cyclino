@@ -65,26 +65,27 @@
     <string name="config">Konfig</string>
     <string name="calibration2">Kalibration</string>
 
+    <string name="t30s">30 s</string>
+    <string name="t1min">1 min</string>
+    <string name="t2min">2 min</string>
+    <string name="t5min">5 min</string>
+    <string name="t10min">10 min</string>
+    <string name="t15min">15 min</string>
+    <string name="t30min">30 min</string>
+    <string name="t1h">1 h</string>
+    <string name="t2h">2 h</string>
+    <string name="t5h">5 h</string>
+    <string name="t10h">10 h</string>
+    <string name="t24h">24 h</string>
 
     <string name="title_activity_settings">Einstellungen</string>
-    <string name="preference_aktienliste_title">Liste der Finanzinstrumente</string>
-    <string name="preference_aktienliste_key">aktienliste</string>
-    <string name="preference_aktienliste_default">SAP.de,BMW.de</string>
-
-
-    <string-array name="frequenzspinnerEintraege">
-        <item>15 min</item>
-        <item>30 s</item>
-        <item>1 min</item>
-        <item>2 min</item>
-        <item>5 min</item>
-        <item>10 min</item>
-        <item>30 min</item>
-        <item>1 h</item>
-        <item>2 h</item>
-        <item>5 h</item>
-        <item>10 h</item>
-        <item>24 h</item>
-    </string-array>
+    <string name="preference_start_time">Startuhrzeit</string>
+    <string name="preference_start_time_key">start_time</string>
+    <string name="preference_start_time_default">22:00</string>
+    <string name="preference_number">Anzahl Wiederholungen</string>
+    <string name="preference_number_key">number</string>
+    <string name="preference_number_default">100</string>
+    <string name="preference_interval">Messintervall</string>
+    <string name="preference_interval_key">interval</string>
 
 </resources>

@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <EditTextPreference
-        android:title="@string/preference_aktienliste_title"
-        android:key="@string/preference_aktienliste_key"
-        android:defaultValue="@string/preference_aktienliste_default"
-        android:inputType="textMultiLine" />
+        android:title="@string/preference_start_time"
+        android:key="@string/preference_start_time_key"
+        android:defaultValue="@string/preference_start_time_default"
+        android:inputType="time"/>
+    <EditTextPreference
+        android:title="@string/preference_number"
+        android:key="@string/preference_number_key"
+        android:defaultValue="@string/preference_number_default"
+        android:inputType="time"/>
+    <ListPreference
+        android:title="@string/preference_interval"
+        android:key="@string/preference_interval_key"
+        android:defaultValue="@string/t15min"
+        android:entries="@array/frequenzspinnerEintraege"
+        android:entryValues="@array/frequenzspinnerEintraege"
+        />
 </PreferenceScreen>

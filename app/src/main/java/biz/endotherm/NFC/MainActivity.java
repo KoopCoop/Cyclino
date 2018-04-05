@@ -7,10 +7,13 @@ import java.util.Calendar;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.Switch;
 import android.widget.TabWidget;
 import android.widget.TableLayout;
@@ -130,12 +133,28 @@ public class MainActivity extends AppCompatActivity {
 
         timePicker.setIs24HourView(true);
         datePicker.setCalendarViewShown(false);
-        timePicker.setCurrentHour(21);
-        timePicker.setCurrentMinute(0);
+
+//get mission start time from settings and pre-fill time picker with these values
+        SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String prefStartTimeKey = getString(R.string.preference_start_time_key);
+        String prefStartTimeDefault = getString(R.string.preference_start_time_default);
+        String startTime = sPrefs.getString(prefStartTimeKey,prefStartTimeDefault);
+        String[] pieces = startTime.split(":");
+        timePicker.setCurrentHour(Integer.parseInt(pieces[0]));
+        timePicker.setCurrentMinute(Integer.parseInt(pieces[1]));
+
+//get number of measurements from settings and pre-fill "wiederholungen" with this value
+        String prefNumberKey = getString(R.string.preference_number_key);
+        String prefNumberDefault = getString(R.string.preference_number_default);
+        wiederholungen.setText(sPrefs.getString(prefNumberKey,prefNumberDefault));
 
 
         messwerteliste = (ListView) findViewById(R.id.messwerteList);
         frequenzSpinner = (Spinner) findViewById(R.id.frequenzspinner);
+//get measurement interval from settings and pre-fill frequenzSpinner with this value
+        String prefInterval = getString(R.string.preference_interval_key);
+        String prefIntervalDefault = getString(R.string.t15min);
+        selectValue(frequenzSpinner, sPrefs.getString(prefInterval,prefIntervalDefault));
 
         frequenzSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
@@ -164,6 +183,16 @@ public class MainActivity extends AppCompatActivity {
         mpendingIntent = PendingIntent.getActivity(
                 this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
+    }
+
+
+    private void selectValue(Spinner spinner, Object value){ // select specific item of spinner (by name)
+        for (int i = 0; i < spinner.getCount(); i++) {
+            if (spinner.getItemAtPosition(i).equals(value)) {
+                spinner.setSelection(i);
+                break;
+            }
+        }
     }
 
     public boolean onCreateOptionsMenu(Menu menu){
