@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     String f_val="00 00 00 00 00 00 00 00", text_val="Place phone on Tag", frequencyFromSpinner="",
             frequencyStringFromMs="0", numberPassesFromEdit="";
     int currentMeasurementNumber = 0;
+    boolean missionTimingRight=false;
     Calendar configuredMissionTimestamp;
     long delayActual_ms=0;
     long delayCountdown=0;
@@ -256,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
                     frequencyStringFromMs = getString(frequencyId);
                 }
                 //frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
+                missionTimingRight = handleTag.get_missionTimingRight();
                 //text_val=handleTag.getText_val();
                 text_val = null;
                 int text_id = handleTag.getText_id();
@@ -278,15 +280,17 @@ public class MainActivity extends AppCompatActivity {
                 ListView listView = (ListView) findViewById(R.id.messwerteList);
                 listView.setAdapter(adapter);
                 // prevent listview from scrolling
-                if (adapter.getCount()>0) {
-                    View item = adapter.getView(0, null, listView);
-                    item.measure(0, 0);
-                    ViewGroup.LayoutParams lp = listView.getLayoutParams();
-                    lp.height = (item.getMeasuredHeight() + listView.getDividerHeight())
-                            * adapter.getCount();
-                    listView.setLayoutParams(lp);
+                if(missionTimingRight) {
+                    if (adapter.getCount() > 0) {
+                        View item = adapter.getView(0, null, listView);
+                        item.measure(0, 0);
+                        ViewGroup.LayoutParams lp = listView.getLayoutParams();
+                        lp.height = (item.getMeasuredHeight() + listView.getDividerHeight())
+                                * adapter.getCount();
+                        listView.setLayoutParams(lp);
+                    }
+                    adapter.setData(handleTag.GetData());
                 }
-                adapter.setData(handleTag.GetData());
 
             }
         });
@@ -390,6 +394,7 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             startStopText.setText(getString(R.string.mission_stop_failed) + " (" + getString(handleTag.getText_id()) + "). " +  getString(R.string.try_again));
                         }
+
                         ausleseButton.callOnClick();
                     }else{
                         startStopText.setText(getString(R.string.mission_already_stopped));
@@ -439,6 +444,7 @@ public class MainActivity extends AppCompatActivity {
                     frequencyStringFromMs = getString(frequencyId);
                 }
                 //frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
+                missionTimingRight = handleTag.get_missionTimingRight();
                 //text_val=handleTag.getText_val();
                 //text_val=getString(handleTag.getText_id());
                 text_val = null;
@@ -456,19 +462,24 @@ public class MainActivity extends AppCompatActivity {
                     if (startStopText.getText().equals(getString(R.string.scan_again))){ // | startStopText.getText().equals(getString(R.string.start_mission_text))) {
                         startStopText.setText(getString(R.string.start_mission_text));
                     }
-                    else if(currentMeasurementNumber!=0 & numberPassesConfigured!=0 & !missionStatus_val[4].equals("BatError/BatOFF ")) {
+                    else if(missionTimingRight & currentMeasurementNumber!=0 & numberPassesConfigured!=0 & !missionStatus_val[4].equals("BatError/BatOFF ")) {
                         missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.of) + " " +
                                 numberPassesConfigured + " " + getString(R.string.values) + " " + frequencyStringFromMs + " " + getString(R.string.interval));
                     }
-                    else if (currentMeasurementNumber==0 && text_id == R.string.suspicious_values){
-                            missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " "
+                    else if (!missionTimingRight & !missionStatus_val[4].equals("BatError/BatOFF ")){                            missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " "
                                     + startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
+                       handleTag.stopDevice(currentTag, cic);
                     }
-                    else if (missionStatus_val[4].equals("BatError/BatOFF ") && currentMeasurementNumber!=0){
+                    else if (missionTimingRight & missionStatus_val[4].equals("BatError/BatOFF ") & currentMeasurementNumber!=0){
                         missionStatusText.setText(getString(R.string.mission_status) + " " +  getString(R.string.no_new_mission) + " " +  getString(R.string.last_mission_had)
                                 + " " + currentMeasurementNumber + " " + getString(R.string.see_previous_data));
                         //missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte " +currentMeasurementNumber+
                         // " Messwert(e). Siehe Daten unten (nach Auslesen)");
+                    }
+                    else if (!missionTimingRight & missionStatus_val[4].equals("BatError/BatOFF ")){
+                        missionStatusText.setText(getString(R.string.mission_status) + " " +  getString(R.string.no_new_mission) + " " +  getString(R.string.last_mission_had) + " "
+                                + getString(R.string.suspicious_values2));
+                        //missionStatusText.setText("Missionsstatus: Keine neue Mission. Letzte Mission hatte suspekte Sensorwerte "
                     }
                     else if (numberPassesConfigured==0){
                         missionStatusText.setText(getString(R.string.mission_status) + " " +  getString(R.string.no_new_mission));
@@ -584,6 +595,7 @@ public class MainActivity extends AppCompatActivity {
                 gesetztesIntervall = getString(frequencyId);
             }
             //gesetztesIntervall = handleTag.get_frequencyStringFromMs();
+            missionTimingRight = handleTag.get_missionTimingRight();
             configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
             delayActual_ms=handleTag.get_actualDelay_ms();
             //text_val = handleTag.getText_val();

@@ -34,11 +34,13 @@ public class HandleTag {
     private long delayRegister_ms;
     private long delayCountdown;
     private int numberPassesConfigured;
+    private boolean missionTimingRight;
     private NfcV nfcv_senseTag;
     private ArrayList<DataPoint> data;
 
     private long firstMeasurementTime = 0; //mission start time in ms (Unix time)
     private long lastTime = 0; //mission end time in ms (Unix time)
+    private int cic=0;
 
     //Getter und Setter
     public String getText_val() {
@@ -63,6 +65,9 @@ public class HandleTag {
     }
     public long get_delayCountdown() {
         return delayCountdown;
+    }
+    public boolean get_missionTimingRight() {
+        return missionTimingRight;
     }
     public Calendar get_configuredMissionTimestamp() {
         return configuredMissionTimestamp;
@@ -112,6 +117,11 @@ public class HandleTag {
                     delayRegister_ms= GetDelayFromRegister_ms();
                     delayActual_ms = GetActualDelay_ms();
                     delayCountdown = GetDelayCountdown();
+                    missionTimingRight= GetMissionTimingRight();
+                    Log.i("Tag data", "Kalibration: "+GetSetCalibrationOffset());
+
+                    Log.i("Tag data", "Missiontiming: "+missionTimingRight);
+
 
                     data.clear();
 
@@ -127,7 +137,9 @@ public class HandleTag {
                     int pagesToRead = (currentMeasurementNumber + 3) / 4;
                     int sample = 0;
                     boolean timingCorrect = CheckIfMissionTimingIsCorrect(frequency_ms, currentMeasurementNumber);
+                    Log.i("Tag data", "MissionTimingRight? "+missionTimingRight);
                     if (timingCorrect) {
+                        setMissionTimingRight(true);
                         for (int i = 0; i < pagesToRead; i++) {
                             byte[] buffer = readTag((byte) (0x09 + i));
                             for (int j = 0; j < 4; j++) {
@@ -145,7 +157,7 @@ public class HandleTag {
                     } else {
                        text_id = R.string.suspicious_values;
                        //text_val = "Suspekte Sensorwerte!";
-                       currentMeasurementNumber = 0;
+                       setMissionTimingRight(false);
                     }
                 }
             }
@@ -275,18 +287,25 @@ public class HandleTag {
         return cmd;
     }
 
-    private byte[] cmdBlock236(long missionTimeStamp, long newCalibrationOffset, long delay_min) {
+    private byte[] cmdBlock236(long missionTimeStamp, long newCalibrationOffset, long delay_min, boolean timingRight) {
         byte[] timestamp = new byte[]{
                 (byte) (missionTimeStamp >> 24),
                 (byte) (missionTimeStamp >> 16),
                 (byte) (missionTimeStamp >> 8),
                 (byte) (missionTimeStamp),
-                (byte) (newCalibrationOffset >> 8),
+                (byte) ((newCalibrationOffset >> 8) & 0x7F),//a maximum calibratin offset of 32767 is allowed
                 (byte) (newCalibrationOffset),
                 (byte) (delay_min),
                 (byte) (delay_min >> 8),
         };
-        return timestamp;
+        if (timingRight){
+            timestamp[4] = (byte)(timestamp[4] | 0x80);
+            return timestamp;
+        } else{
+            timestamp[4] = (byte)(timestamp[4] & 0x7F);
+            return timestamp;
+        }
+
     }
 
     //Write Tag with a Block to index
@@ -668,12 +687,12 @@ public class HandleTag {
     public void startDevice(Tag tag, String numberPasses, String FrequencyString, long wantedDelay_min, int cic) {
         int frequencyRegister = GetFrequencyRegister(FrequencyString, numberPasses);
         int passesRegister = GetPassesRegisterFromValue(numberPasses);
-        SetMissionTimestamp(tag, GetCurrentUnixTime(), wantedDelay_min);
+        SetMissionTimestamp(tag, GetCurrentUnixTime(), wantedDelay_min, true);
         writeBlock((byte) 0x08, tag, cmdBlock8());
         writeBlock((byte) 0x02, tag, cmdBlock2(cic, wantedDelay_min));
         writeBlock((byte) 0x03, tag, cmdBlock3(GetFrequencyByteFromString(FrequencyString)[1]));
         writeBlock((byte) 0x00, tag, cmdBlock0(frequencyRegister,passesRegister, 0, cic, 1));
-        readTagData(tag, false);
+        readTagData(tag, true);
     }
 
     public void stopDevice(Tag tag, int cic) {
@@ -681,9 +700,9 @@ public class HandleTag {
         Log.i("Tag data", "reset device erfolgreich!");
         readTagData(tag, false);*/
         writeBlock((byte) 0x00, tag, cmdBlock0(block0[4]& 0x1F, (byte) 0x00, 1, cic, 0));//set number of p
-        readTagData(tag, false);
+        readTagData(tag, true);
         Log.i("Tag data", "Batterie aus erfolgreich!");
-        readTagData(tag, false);
+        readTagData(tag, true);
     }
 
     private Calendar GetConfiguredMissionTimestamp() {//from block 236
@@ -695,8 +714,8 @@ public class HandleTag {
         return System.currentTimeMillis() / 1000L;
     }
 
-    private void SetMissionTimestamp(Tag tag, long missionTimeStamp, long delay_min) {
-        writeBlock((byte)0xEC, tag, cmdBlock236(missionTimeStamp, GetSetCalibrationOffset(),delay_min));//Mission timestamp is written to sensor memory
+    private void SetMissionTimestamp(Tag tag, long missionTimeStamp, long delay_min, boolean checkMissionTiming) {
+        writeBlock((byte)0xEC, tag, cmdBlock236(missionTimeStamp, GetSetCalibrationOffset(),delay_min, checkMissionTiming));//Mission timestamp is written to sensor memory
     }
 
     private long GetSetUnixTime(){
@@ -740,12 +759,26 @@ public class HandleTag {
     }
 
     public void setCalibrationOffset(Tag tag, long newCalibrationOffset){
-        writeBlock((byte) 0xEC, tag, cmdBlock236(GetSetUnixTime(), newCalibrationOffset,delayRegister_ms/60/1000));
+        writeBlock((byte) 0xEC, tag, cmdBlock236(GetSetUnixTime(), newCalibrationOffset,delayRegister_ms/60/1000, missionTimingRight));
     }
 
     public int GetSetCalibrationOffset(){
         //int calibrationOffset=-10937; //varies significantly for different devices, has to be calibrated
-        return ((block236[5] & 0xff) << 8)|(block236[6] & 0xff);
+        return ((block236[5] & 0x7f) << 8)|(block236[6] & 0xff);
+    }
+
+    public boolean GetMissionTimingRight(){
+        int missionTimingRightInt=(block236[5]& 0x80) >> 7;
+        if(missionTimingRightInt==1){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    public void setMissionTimingRight(boolean missionTimingCorrect){
+        cmdBlock236(GetSetUnixTime(), GetSetCalibrationOffset(), GetDelayFromRegister_ms()/60/1000, missionTimingCorrect);
+        missionTimingRight=missionTimingCorrect;
     }
 
     //parsing function
