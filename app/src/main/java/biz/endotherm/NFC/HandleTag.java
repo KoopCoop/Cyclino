@@ -20,7 +20,8 @@ public class HandleTag {
     private String text_val;
     private int text_id;
     private String[] missionStatus_val = {"", "", "", "", ""};
-    private String frequencyStringFromMs = "0";
+    //private String frequencyStringFromMs = "0";
+    private int frequencyId = 0;
     private int frequency_ms = 0;
     private byte[] block0 = {0, 0, 0, 0, 0, 0, 0, 0};
     private byte[] block2 = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -47,8 +48,9 @@ public class HandleTag {
     public String[] get_MissionStatus_val() {
         return missionStatus_val;
     }
-    public String get_frequencyStringFromMs() {
-        return frequencyStringFromMs;
+    //public String get_frequencyStringFromMs() { return frequencyStringFromMs; }
+    public int get_frequencyId() {
+        return frequencyId;
     }
     public int get_anzahl() {
         return currentMeasurementNumber;
@@ -102,7 +104,8 @@ public class HandleTag {
                     //Read Data at index of Data (Anzahl Daten)
                     GetSampleCount();
                     frequency_ms = GetFrequency_ms();
-                    frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
+                    frequencyId = GetFrequencyId(frequency_ms);
+                    //frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
                     numberPassesConfigured = GetNumberOfPassesFromRegister();
                     missionStatus_val = GetMissionStatus();
                     configuredMissionTimestamp = GetConfiguredMissionTimestamp();
@@ -501,8 +504,10 @@ public class HandleTag {
         return frequency;
     }
 
-    private String GetFrequencyStringFromMs(int frequencyms){
-        frequencyStringFromMs="";
+    //private String GetFrequencyStringFromMs(int frequencyms){
+        private int GetFrequencyId(int frequencyms){
+        //frequencyStringFromMs="";
+        frequencyId = 0;
         switch (frequencyms) {//custom time not supported
             /*case 250://with moving average measurements take about 16s with highest accuracy
                 frequencyStringFromMs = "250 ms";
@@ -520,44 +525,57 @@ public class HandleTag {
                 frequencyStringFromMs = "15 s";
                 break;*/
             case 30000:
-                frequencyStringFromMs = "30 s";
+                //frequencyStringFromMs = "30 s";
+                frequencyId = R.string.t30s;
                 break;
             case 60000:
-                frequencyStringFromMs = "1 min";
+                //frequencyStringFromMs = "1 min";
+                frequencyId = R.string.t1min;
                 break;
             case 120000:
-                frequencyStringFromMs = "2 min";
+                //frequencyStringFromMs = "2 min";
+                frequencyId = R.string.t2min;
                 break;
             case 300000:
-                frequencyStringFromMs = "5 min";
+                //frequencyStringFromMs = "5 min";
+                frequencyId = R.string.t5min;
                 break;
             case 600000:
-                frequencyStringFromMs = "10 min";
+                //frequencyStringFromMs = "10 min";
+                frequencyId = R.string.t10min;
                 break;
             case 900000:
-                frequencyStringFromMs = "15 min";
+                //frequencyStringFromMs = "15 min";
+                frequencyId = R.string.t15min;
                 break;
             case 1800000:
-                frequencyStringFromMs = "30 min";
+                //frequencyStringFromMs = "30 min";
+                frequencyId = R.string.t30min;
                 break;
             case 3600000:
-                frequencyStringFromMs = "1 h";
+                //frequencyStringFromMs = "1 h";
+                frequencyId = R.string.t1h;
                 break;
             case 7200000:
-                frequencyStringFromMs = "2 h";
+                //frequencyStringFromMs = "2 h";
+                frequencyId = R.string.t2h;
                 break;
             case 18000000:
-                frequencyStringFromMs = "5 h";
+                //frequencyStringFromMs = "5 h";
+                frequencyId = R.string.t5h;
                 break;
             case 36000000:
-                frequencyStringFromMs = "10 h";
+                //frequencyStringFromMs = "10 h";
+                frequencyId = R.string.t10h;
                 break;
             case 86400000:
-                frequencyStringFromMs = "24 h";
+                //frequencyStringFromMs = "24 h";
+                frequencyId = R.string.t24h;
                 break;
         }
 
-        return frequencyStringFromMs;
+        //return frequencyStringFromMs;
+            return frequencyId;
     }
 
     private int GetPassesRegisterFromValue(String numberPassesString) {

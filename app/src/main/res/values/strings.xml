@@ -65,6 +65,7 @@
     <string name="config">Konfig</string>
     <string name="calibration2">Kalibration</string>
 
+    // Einträge Frequenz-Spinner
     <string name="t30s">30 s</string>
     <string name="t1min">1 min</string>
     <string name="t2min">2 min</string>
@@ -78,6 +79,7 @@
     <string name="t10h">10 h</string>
     <string name="t24h">24 h</string>
 
+    // Einträge Settings
     <string name="title_activity_settings">Einstellungen</string>
     <string name="preference_start_time">Startuhrzeit</string>
     <string name="preference_start_time_key">start_time</string>

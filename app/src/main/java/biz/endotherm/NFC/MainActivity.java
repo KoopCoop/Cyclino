@@ -249,7 +249,13 @@ public class MainActivity extends AppCompatActivity {
                 missionStatus_val = handleTag.get_MissionStatus_val();
                 currentMeasurementNumber = handleTag.get_anzahl();
                 numberPassesConfigured = handleTag.get_numberOfPasses();
-                frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
+                int frequencyId = handleTag.get_frequencyId();
+                if (frequencyId == 0){
+                    frequencyStringFromMs = "0";
+                } else {
+                    frequencyStringFromMs = getString(frequencyId);
+                }
+                //frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 //text_val=handleTag.getText_val();
                 text_val = null;
                 int text_id = handleTag.getText_id();
@@ -426,7 +432,13 @@ public class MainActivity extends AppCompatActivity {
 
                 currentMeasurementNumber = handleTag.get_anzahl();
                 numberPassesConfigured = handleTag.get_numberOfPasses();
-                frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
+                int frequencyId = handleTag.get_frequencyId();
+                if (frequencyId == 0){
+                    frequencyStringFromMs = "0";
+                } else {
+                    frequencyStringFromMs = getString(frequencyId);
+                }
+                //frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 //text_val=handleTag.getText_val();
                 //text_val=getString(handleTag.getText_id());
                 text_val = null;
@@ -439,7 +451,8 @@ public class MainActivity extends AppCompatActivity {
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
 
                 String startTimeConfigured=getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delayActual_ms);//add conversion time (Table 4 Firmware User Guide)
-                if(!handleTag.get_frequencyStringFromMs().equals("0")){
+                //if(!handleTag.get_frequencyStringFromMs().equals("0")){
+                if(!frequencyStringFromMs.equals("0")){
                     if (startStopText.getText().equals(getString(R.string.scan_again))){ // | startStopText.getText().equals(getString(R.string.start_mission_text))) {
                         startStopText.setText(getString(R.string.start_mission_text));
                     }
@@ -564,7 +577,13 @@ public class MainActivity extends AppCompatActivity {
             missionStatus_val = handleTag.get_MissionStatus_val();
             currentMeasurementNumber = handleTag.get_anzahl();
             numberPassesConfigured = handleTag.get_numberOfPasses();
-            gesetztesIntervall = handleTag.get_frequencyStringFromMs();
+            int frequencyId = handleTag.get_frequencyId();
+            if (frequencyId == 0){
+                gesetztesIntervall = "0";
+            } else {
+                gesetztesIntervall = getString(frequencyId);
+            }
+            //gesetztesIntervall = handleTag.get_frequencyStringFromMs();
             configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
             delayActual_ms=handleTag.get_actualDelay_ms();
             //text_val = handleTag.getText_val();
