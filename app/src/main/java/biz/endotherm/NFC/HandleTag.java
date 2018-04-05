@@ -139,7 +139,6 @@ public class HandleTag {
                     boolean timingCorrect = CheckIfMissionTimingIsCorrect(frequency_ms, currentMeasurementNumber);
                     Log.i("Tag data", "MissionTimingRight? "+missionTimingRight);
                     if (timingCorrect) {
-                        setMissionTimingRight(true);
                         for (int i = 0; i < pagesToRead; i++) {
                             byte[] buffer = readTag((byte) (0x09 + i));
                             for (int j = 0; j < 4; j++) {
@@ -155,9 +154,8 @@ public class HandleTag {
                             }
                         }
                     } else {
-                       text_id = R.string.suspicious_values;
-                       //text_val = "Suspekte Sensorwerte!";
-                       setMissionTimingRight(false);
+                        text_id = R.string.suspicious_values;
+                        //text_val = "Suspekte Sensorwerte!";
                     }
                 }
             }
@@ -670,10 +668,10 @@ public class HandleTag {
                 frequencyByteArray[0]=16;
                 frequencyByteArray[1]=900000;
                 break;
-                default:
-                    frequencyByteArray[0]=16;
-                    frequencyByteArray[1]=900000;
-                    break;
+            default:
+                frequencyByteArray[0]=16;
+                frequencyByteArray[1]=900000;
+                break;
         }
         return frequencyByteArray;
     }
@@ -776,8 +774,8 @@ public class HandleTag {
         }
     }
 
-    public void setMissionTimingRight(boolean missionTimingCorrect){
-        cmdBlock236(GetSetUnixTime(), GetSetCalibrationOffset(), GetDelayFromRegister_ms()/60/1000, missionTimingCorrect);
+    public void setMissionTimingRight(Tag tag, boolean missionTimingCorrect){
+        writeBlock((byte)0xEC, tag, cmdBlock236(GetSetUnixTime(), GetSetCalibrationOffset(), GetDelayFromRegister_ms()/60/1000, missionTimingCorrect));
         missionTimingRight=missionTimingCorrect;
     }
 
@@ -804,4 +802,3 @@ public class HandleTag {
         return new String(hexChars);
     }
 }
-
