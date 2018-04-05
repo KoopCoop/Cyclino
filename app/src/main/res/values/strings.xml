@@ -61,6 +61,10 @@
     <string name="calibration">Kalibration: </string>
     <string name="corresponds_to">entspricht Cyclino-Wert:</string>
     <string name="set">Setzen</string>
+    <string name="mission_start">Neue Mission starten</string>
+    <string name="mission_running">Aktuell ist eine Mission eingeplant oder läuft noch. Trotzdem eine neue Mission starten?</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
 
     <string name="mission">Mission</string>
     <string name="config">Konfig</string>

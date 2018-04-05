@@ -1,22 +1,19 @@
 package biz.endotherm.NFC;
 
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Calendar;
 
-import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.Switch;
-import android.widget.TabWidget;
-import android.widget.TableLayout;
 import android.widget.TimePicker;
 import android.widget.DatePicker;
 import android.app.PendingIntent;
@@ -32,7 +29,6 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.nfc.NfcAdapter;
 import android.widget.BaseAdapter;
 import android.view.ViewGroup;
@@ -44,14 +40,6 @@ import android.os.Handler;
 
 import android.widget.TabHost;
 import android.widget.AdapterView;
-
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
-
-import org.w3c.dom.Text;
-
-import java.io.StringBufferInputStream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -334,6 +322,7 @@ public class MainActivity extends AppCompatActivity {
 
         final Button startButton = (Button) findViewById(R.id.startButton);
         startButton.setOnClickListener(new View.OnClickListener() {
+            boolean startMission = true;
             @Override
             public void onClick(View v) {
                 numberPassesFromEdit = wiederholungen.getText().toString();
@@ -349,30 +338,81 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 else{
+                    if (!missionStatus_val[4].equals("BatError/BatOFF ")) {//mission not finished yet
 
-                    Date now = new Date();
-                    long millisNow = now.getTime();
+// Erster Versuch:
+                        //new AlertDialog.Builder(MainActivity.this)
+                        //        .setTitle(R.string.mission_start)
+                        //        .setMessage(R.string.mission_running)
+                        //        .setIcon(android.R.drawable.ic_dialog_alert)
+                        //        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                        //            public void onClick(DialogInterface dialog, int which) {
+                        //                startMission = true;
+                        //            }})
+                        //        .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                        //          public void onClick(DialogInterface dialog, int which) {
+                        //                   // don't start new mission
+                        //            startMission = false;
+                        //        }})
+                        //      .show();
 
-                    DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
-                    TimePicker timePicker = (TimePicker) findViewById(R.id.startTimePicker);
 
-                    int startYear = datePicker.getYear() - 1900;
-                    int startMonth = datePicker.getMonth();
-                    int startDay = datePicker.getDayOfMonth();
-                    int startHour = timePicker.getCurrentHour();
-                    int startMinute = timePicker.getCurrentMinute();
-
-                    Date missionStart = new Date(startYear, startMonth, startDay, startHour, startMinute);
-                    long millisStart = missionStart.getTime();
-                    long delay_min = (millisStart - millisNow) / 60000;
-                    if (delay_min == 0) {
-                        delay_min = 1;
+// Zweiter Versuch:
+                        //AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                        //// Set a title for alert dialog
+                        //builder.setTitle(R.string.mission_start);
+                        //// Ask the final question
+                        //builder.setMessage(R.string.mission_running);
+                        //DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                        //    @Override
+                        //    public void onClick(DialogInterface dialog, int which) {
+                        //        switch(which){
+                        //            case DialogInterface.BUTTON_POSITIVE:
+                        //                // User clicked the Yes button
+                        //                startMission = true;
+                        //                break;
+                        //            case DialogInterface.BUTTON_NEGATIVE:
+                        //                // User clicked the No button
+                        //                startMission = false;
+                        //                break;
+                        //       }
+                        //    }
+                        //};
+                        //// Set the alert dialog yes button click listener
+                        //builder.setPositiveButton(R.string.yes, dialogClickListener);
+                        //// Set the alert dialog no button click listener
+                        //builder.setNegativeButton(R.string.no ,dialogClickListener);
+                        //AlertDialog dialog = builder.create();
+                        //// Display the alert dialog on interface
+                        //dialog.show();
+                        //Toast.makeText(getApplicationContext(), "startMission=" + startMission ,Toast.LENGTH_LONG).show(); // Die Toast Message kommt parallel zum Aufruf des Popups!?
                     }
-                    if (delay_min > 0) {
-                        handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
-                        startStopText.setText(getString(R.string.start_mission_text));
-                    } else {
-                        startStopText.setText(getString(R.string.mission_in_past) + " " + getString(R.string.start_mission_text));
+
+                    if (startMission) {
+                        Date now = new Date();
+                        long millisNow = now.getTime();
+
+                        DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
+                        TimePicker timePicker = (TimePicker) findViewById(R.id.startTimePicker);
+
+                        int startYear = datePicker.getYear() - 1900;
+                        int startMonth = datePicker.getMonth();
+                        int startDay = datePicker.getDayOfMonth();
+                        int startHour = timePicker.getCurrentHour();
+                        int startMinute = timePicker.getCurrentMinute();
+
+                        Date missionStart = new Date(startYear, startMonth, startDay, startHour, startMinute);
+                        long millisStart = missionStart.getTime();
+                        long delay_min = (millisStart - millisNow) / 60000;
+                        if (delay_min == 0) {
+                            delay_min = 1;
+                        }
+                        if (delay_min > 0) {
+                            handleTag.startDevice(currentTag, numberPassesFromEdit, frequencyFromSpinner, delay_min, cic);
+                            startStopText.setText(getString(R.string.start_mission_text));
+                        } else {
+                            startStopText.setText(getString(R.string.mission_in_past) + " " + getString(R.string.start_mission_text));
+                        }
                     }
                 }
             }
@@ -466,7 +506,8 @@ public class MainActivity extends AppCompatActivity {
                         missionStatusText.setText(getString(R.string.mission_status) + " " + currentMeasurementNumber + " " + getString(R.string.of) + " " +
                                 numberPassesConfigured + " " + getString(R.string.values) + " " + frequencyStringFromMs + " " + getString(R.string.interval));
                     }
-                    else if (!missionTimingRight & !missionStatus_val[4].equals("BatError/BatOFF ")){                            missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " "
+                    else if (!missionTimingRight & !missionStatus_val[4].equals("BatError/BatOFF ")){
+                        missionStatusText.setText(getString(R.string.mission_status) + " " + getString(R.string.first_val) + " "
                                     + startTimeConfigured + getString(R.string.deviating_val) + " (" + frequencyStringFromMs + ").");
                        handleTag.stopDevice(currentTag, cic);
                     }
