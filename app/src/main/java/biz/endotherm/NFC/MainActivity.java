@@ -235,24 +235,6 @@ public class MainActivity extends AppCompatActivity {
         ausleseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//<<<<<<< HEAD
-//                missionStatus_val = handleTag.get_MissionStatus_val();
-//                currentMeasurementNumber = handleTag.get_anzahl();
-//                numberPassesConfigured = handleTag.get_numberOfPasses();
-//                int frequencyId = handleTag.get_frequencyId();
-//                if (frequencyId == 0){
-//                    frequencyStringFromMs = "0";
-//                } else {
-//                    frequencyStringFromMs = getString(frequencyId);
-//                }
-//                //frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
-//||||||| merged common ancestors
-//                missionStatus_val = handleTag.get_MissionStatus_val();
-//                currentMeasurementNumber = handleTag.get_anzahl();
-//                numberPassesConfigured = handleTag.get_numberOfPasses();
-//                frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
-//=======
-//>>>>>>> master
                 missionTimingRight = handleTag.get_missionTimingRight();
                 if (missionTimingRight) {
                     missionStatus_val = handleTag.get_MissionStatus_val();
