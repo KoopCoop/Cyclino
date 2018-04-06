@@ -248,35 +248,30 @@ public class MainActivity extends AppCompatActivity {
         clipboardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                missionTimingRight = handleTag.get_missionTimingRight();
                 String textToCopy = "";
 
-                for (int i = 0; i < currentMeasurementNumber; i++) {
-                    textToCopy = textToCopy + adapter.data[i].date.toString() + " " + String.format("%.5f", adapter.data[i].temp) +
-                            System.getProperty("line.separator");
+                if (missionTimingRight) {
+                    for (int i = 0; i < currentMeasurementNumber; i++) {
+                        textToCopy = textToCopy + adapter.data[i].date.toString() + " " + String.format("%.5f", adapter.data[i].temp) +
+                                System.getProperty("line.separator");
+                    }
                 }
-
-                if(textToCopy.length() != 0)
-                {
-                    if(Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) // check SDK version
+                if (textToCopy.length() != 0) {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) // check SDK version
                     {
                         android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                         clipboard.setText(textToCopy);
                         Toast.makeText(getApplicationContext(), getString(R.string.data_copied), Toast.LENGTH_SHORT).show();
-                    }
-                    else
-                    {
+                    } else {
                         android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                        android.content.ClipData clipData = android.content.ClipData.newPlainText("Clip",textToCopy);
+                        android.content.ClipData clipData = android.content.ClipData.newPlainText("Clip", textToCopy);
                         Toast.makeText(getApplicationContext(), getString(R.string.data_copied), Toast.LENGTH_SHORT).show();
                         clipboard.setPrimaryClip(clipData);
                     }
-                }
-                else
-                {
+                } else {
                     Toast.makeText(getApplicationContext(), getString(R.string.no_data_selected), Toast.LENGTH_SHORT).show();
                 }
-
             }
         });
 
