@@ -115,10 +115,7 @@ public class HandleTag {
                     delayActual_ms = GetActualDelay_ms();
                     delayCountdown = GetDelayCountdown();
                     missionTimingRight= GetMissionTimingRight();
-                    Log.i("Tag data", "Kalibration: "+GetSetCalibrationOffset());
-
-                    Log.i("Tag data", "Missiontiming: "+missionTimingRight);
-
+                    Log.i("Tag data", "Kalibration: "+GetSetCalibrationOffset());//mein Messoffset: 11072
 
                     data.clear();
 

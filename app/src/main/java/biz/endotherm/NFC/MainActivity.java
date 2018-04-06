@@ -351,23 +351,21 @@ public class MainActivity extends AppCompatActivity {
         calibrationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!(calibrationTempEdit.getText().toString()).equals("") & !(cyclinoValueEdit.getText().toString()).equals("")) {
-                    calibrationTemp = Double.parseDouble(calibrationTempEdit.getText().toString());
-                    cyclinoValue = Double.parseDouble(cyclinoValueEdit.getText().toString());
+                calibrationTemp = Double.parseDouble(calibrationTempEdit.getText().toString());
+                cyclinoValue = Double.parseDouble(cyclinoValueEdit.getText().toString());
+                newCalibrationOffset=handleTag.GetNewCalibrationOffset(calibrationTemp,cyclinoValue);
 
-                    newCalibrationOffset=handleTag.GetNewCalibrationOffset(calibrationTemp,cyclinoValue);
+                if(newCalibrationOffset > 0 & newCalibrationOffset < 32767 /*11 bit reserved*/ & !(calibrationTempEdit.getText().toString()).equals("") & !(cyclinoValueEdit.getText().toString()).equals("")) {
                     handleTag.setCalibrationOffset(currentTag, newCalibrationOffset);
                     ausleseButton.callOnClick();
-                    if (handleTag.GetSetCalibrationOffset() == newCalibrationOffset){
-                        calibrationText.setText(getString(R.string.calibration_success));
-                    } else{
-                        calibrationText.setText(getString(R.string.calibration_error));
+                    if (handleTag.GetSetCalibrationOffset() == newCalibrationOffset) {
+                        calibrationText.setText(getString(R.string.calibration_success)+newCalibrationOffset);
+                    } else {
+                        calibrationText.setText(getString(R.string.calibration_error)+handleTag.GetSetCalibrationOffset());
                     }
-                }
-                else{
+                }else{
                     calibrationText.setText(getString(R.string.calibration_invalid));
                 }
-
             }
         });
 
