@@ -3,11 +3,13 @@ package biz.endotherm.NFC;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Calendar;
+import java.util.prefs.PreferenceChangeListener;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.TypedValue;
@@ -78,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
     double calibrationTemp = 0;
     long nowMillis=0;
 
+    // Preference change listener
+    private PreferenceChangeListener mPreferenceListener = null;
+
     public final static String EXTRA_MESSAGE = "biz.endotherm.NFC.MESSAGE";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,8 +128,13 @@ public class MainActivity extends AppCompatActivity {
         timePicker.setIs24HourView(true);
         datePicker.setCalendarViewShown(false);
 
-//get mission start time from settings and pre-fill time picker with these values
+        //get preferences from Settings
         SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        mPreferenceListener = new PreferenceChangeListener();
+        sPrefs.registerOnSharedPreferenceChangeListener(mPreferenceListener);
+
+//get mission start time from settings and pre-fill time picker with these values
         String prefStartTimeKey = getString(R.string.preference_start_time_key);
         String prefStartTimeDefault = getString(R.string.preference_start_time_default);
         String startTime = sPrefs.getString(prefStartTimeKey,prefStartTimeDefault);
@@ -184,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //enable settings menu
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
@@ -191,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
+        // Handle item selection in Settings
         switch (item.getItemId()) {
             case R.id.action_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
@@ -201,6 +212,55 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Handle Settings changes
+    private class PreferenceChangeListener implements OnSharedPreferenceChangeListener {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences prefs,  String key) {
+
+            long calibrationOffset;
+            String offsetString;
+            SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+
+            if (key.equals(getString(R.string.preference_offset_key))) {
+                // get entered value for checking
+                String prefNumberKey = getString(R.string.preference_offset_key);
+                String prefNumberDefault = getString(R.string.preference_offset_default);
+                offsetString = prefs.getString(prefNumberKey,prefNumberDefault);
+                calibrationOffset = Long.parseLong(offsetString.trim());
+
+                // check entered value
+                if(calibrationOffset > 0 & calibrationOffset < 32767 /*11 bit reserved*/ ) {
+                    //value correct: set new offset
+                    handleTag.setCalibrationOffset(currentTag, calibrationOffset);
+
+                    //read calibration offset from sensor
+                    int sensorCalibrationOffset = handleTag.GetSetCalibrationOffset();
+
+                    if (sensorCalibrationOffset == calibrationOffset) {
+                        Toast.makeText(getApplicationContext(), getString(R.string.calibration_success)+calibrationOffset, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), getString(R.string.calibration_error)+handleTag.GetSetCalibrationOffset(), Toast.LENGTH_SHORT).show();
+                        //write sensorCalibrationOffset into settings, since it differs from entered value
+                        // Geht nicht: Endlosschleife!
+                        //SharedPreferences.Editor editor = sPrefs.edit();
+                        //editor.putString(getString(R.string.preference_offset_key), Long.toString(sensorCalibrationOffset));
+                        //editor.commit();
+                    }
+                }else{
+                    Toast.makeText(getApplicationContext(), getString(R.string.calibration_invalid), Toast.LENGTH_SHORT).show();
+                    //read calibration offset from sensor
+                    int sensorCalibrationOffset = handleTag.GetSetCalibrationOffset();
+                    //write sensorCalibrationOffset into settings, since it differs from entered value
+                    // Geht nicht: Endlosschleife!
+                    //SharedPreferences.Editor editor = sPrefs.edit();
+                    //editor.putString(getString(R.string.preference_offset_key), Long.toString(sensorCalibrationOffset));
+                    //editor.commit();
+                }
+
+
+            }
+        }
+    }
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -218,7 +278,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.i("life cycle", "Called onResume");
-
 
         if (nfc != null) {
             //Declare intent filters to handle the intents that you want to intercept.
@@ -464,7 +523,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
 
         mTimer = new Runnable() {
             @Override

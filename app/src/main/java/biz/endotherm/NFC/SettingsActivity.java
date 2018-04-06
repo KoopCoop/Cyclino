@@ -32,7 +32,7 @@ public class SettingsActivity extends PreferenceActivity
         Preference offsetPref = findPreference(getString(R.string.preference_offset_key));
         offsetPref.setOnPreferenceChangeListener(this);
 
-        // call onPreferenceChange immediately
+        // call onPreferenceChange immediately to display entered values in settings
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String startTime = sharedPrefs.getString(startTimePref.getKey(), "");
         onPreferenceChange(startTimePref, startTime);
