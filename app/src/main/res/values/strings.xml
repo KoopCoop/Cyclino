@@ -22,8 +22,8 @@
     <string name="mission_stop_failed">Stoppen der Mission leider fehlgeschlagen</string>
     <string name="try_again">Bitte erneut probieren!</string>
 
-    <string name="calibration_success">Neue Kalibration gesetzt</string>
-    <string name="calibration_error">Setzen der Kalibration fehlgeschlagen</string>
+    <string name="calibration_success">Neue Kalibration gesetzt. Neuer Kalibrationsoffset: </string>
+    <string name="calibration_error">Setzen der Kalibration fehlgeschlagen. Gesetzter Kalibrationsoffset: </string>
     <string name="calibration_invalid">Kalibration nicht möglich. Bitte gültige Kalibrationswerte eintragen!</string>
 
     <string name="start_mission_text">Zum Starten einer neuen Mission: Gewünschte Parameter konfigurieren und Start-Button betätigen.</string>
@@ -86,6 +86,7 @@
 
     // Einträge Settings
     <string name="title_activity_settings">Einstellungen</string>
+    <string name="mission_data">Missionsdaten</string>
     <string name="preference_start_time">Startuhrzeit</string>
     <string name="preference_start_time_key">start_time</string>
     <string name="preference_start_time_default">22:00</string>
@@ -94,5 +95,8 @@
     <string name="preference_number_default">100</string>
     <string name="preference_interval">Messintervall</string>
     <string name="preference_interval_key">interval</string>
+    <string name="preference_offset">Offset</string>
+    <string name="preference_offset_key">offset</string>
+    <string name="preference_offset_default">0</string>
 
 </resources>

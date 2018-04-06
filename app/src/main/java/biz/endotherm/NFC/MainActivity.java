@@ -246,8 +246,6 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         frequencyStringFromMs = getString(frequencyId);
                     }
-//                    frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
-                    //text_val=handleTag.getText_val();
                     text_val = null;
                     int text_id = handleTag.getText_id();
                     if (text_id != 0) {
@@ -444,23 +442,26 @@ public class MainActivity extends AppCompatActivity {
         calibrationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!(calibrationTempEdit.getText().toString()).equals("") & !(cyclinoValueEdit.getText().toString()).equals("")) {
-                    calibrationTemp = Double.parseDouble(calibrationTempEdit.getText().toString());
-                    cyclinoValue = Double.parseDouble(cyclinoValueEdit.getText().toString());
+                calibrationTemp = Double.parseDouble(calibrationTempEdit.getText().toString());
+                cyclinoValue = Double.parseDouble(cyclinoValueEdit.getText().toString());
+                newCalibrationOffset=handleTag.GetNewCalibrationOffset(calibrationTemp,cyclinoValue);
 
-                    newCalibrationOffset=handleTag.GetNewCalibrationOffset(calibrationTemp,cyclinoValue);
+                if(newCalibrationOffset > 0 & newCalibrationOffset < 32767 /*11 bit reserved*/ & !(calibrationTempEdit.getText().toString()).equals("") & !(cyclinoValueEdit.getText().toString()).equals("")) {
                     handleTag.setCalibrationOffset(currentTag, newCalibrationOffset);
                     ausleseButton.callOnClick();
-                    if (handleTag.GetSetCalibrationOffset() == newCalibrationOffset){
-                        calibrationText.setText(getString(R.string.calibration_success));
-                    } else{
-                        calibrationText.setText(getString(R.string.calibration_error));
+                    if (handleTag.GetSetCalibrationOffset() == newCalibrationOffset) {
+                        calibrationText.setText(getString(R.string.calibration_success)+newCalibrationOffset);
+                        // write new calibration offset to settings menu
+                        SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                        SharedPreferences.Editor editor = sPrefs.edit();
+                        editor.putString(getString(R.string.preference_offset_key), Long.toString(newCalibrationOffset));
+                        editor.commit();
+                    } else {
+                        calibrationText.setText(getString(R.string.calibration_error)+handleTag.GetSetCalibrationOffset());
                     }
-                }
-                else{
+                }else{
                     calibrationText.setText(getString(R.string.calibration_invalid));
                 }
-
             }
         });
 
@@ -479,10 +480,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     frequencyStringFromMs = getString(frequencyId);
                 }
-                //frequencyStringFromMs = handleTag.get_frequencyStringFromMs();
                 missionTimingRight = handleTag.get_missionTimingRight();
-                //text_val=handleTag.getText_val();
-                //text_val=getString(handleTag.getText_id());
                 text_val = null;
                 int text_id = handleTag.getText_id();
                 if(text_id != 0){
@@ -493,7 +491,6 @@ public class MainActivity extends AppCompatActivity {
                 configuredMissionTimestamp=handleTag.get_configuredMissionTimestamp();
 
                 String startTimeConfigured=getStartTimeString(configuredMissionTimestamp.getTimeInMillis(),delayActual_ms);//add conversion time (Table 4 Firmware User Guide)
-                //if(!handleTag.get_frequencyStringFromMs().equals("0")){
                 if(!frequencyStringFromMs.equals("0")){
                     if (startStopText.getText().equals(getString(R.string.scan_again))){ // | startStopText.getText().equals(getString(R.string.start_mission_text))) {
                         startStopText.setText(getString(R.string.start_mission_text));

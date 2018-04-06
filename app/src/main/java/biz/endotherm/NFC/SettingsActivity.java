@@ -2,9 +2,13 @@ package biz.endotherm.NFC;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.DialogPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 public class SettingsActivity extends PreferenceActivity
@@ -25,6 +29,9 @@ public class SettingsActivity extends PreferenceActivity
         Preference intervalPref = findPreference(getString(R.string.preference_interval_key));
         intervalPref.setOnPreferenceChangeListener(this);
 
+        Preference offsetPref = findPreference(getString(R.string.preference_offset_key));
+        offsetPref.setOnPreferenceChangeListener(this);
+
         // call onPreferenceChange immediately
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String startTime = sharedPrefs.getString(startTimePref.getKey(), "");
@@ -33,6 +40,8 @@ public class SettingsActivity extends PreferenceActivity
         onPreferenceChange(numberPref, numberOfMeasurements);
         String interval = sharedPrefs.getString(intervalPref.getKey(), "");
         onPreferenceChange(intervalPref, interval);
+        String offset = sharedPrefs.getString(offsetPref.getKey(), "");
+        onPreferenceChange(offsetPref, offset);
     }
 
     @Override

@@ -110,7 +110,6 @@ public class HandleTag {
                     GetSampleCount();
                     frequency_ms = GetFrequency_ms();
                     frequencyId = GetFrequencyId(frequency_ms);
-                    //frequencyStringFromMs = GetFrequencyStringFromMs(frequency_ms);
                     numberPassesConfigured = GetNumberOfPassesFromRegister();
                     missionStatus_val = GetMissionStatus();
                     configuredMissionTimestamp = GetConfiguredMissionTimestamp();
@@ -118,10 +117,7 @@ public class HandleTag {
                     delayActual_ms = GetActualDelay_ms();
                     delayCountdown = GetDelayCountdown();
                     missionTimingRight= GetMissionTimingRight();
-                    Log.i("Tag data", "Kalibration: "+GetSetCalibrationOffset());
-
-                    Log.i("Tag data", "Missiontiming: "+missionTimingRight);
-
+                    Log.i("Tag data", "Kalibration: "+GetSetCalibrationOffset());//mein Messoffset: 11072
 
                     data.clear();
 
@@ -155,30 +151,25 @@ public class HandleTag {
                         }
                     } else {
                         text_id = R.string.suspicious_values;
-                        //text_val = "Suspekte Sensorwerte!";
                     }
                 }
             }
             try {
                 nfcv_senseTag.close();
                 if (text_id != R.string.suspicious_values){ // otherwise, suspicious_values is overwritten by tag_disconnection_successful
-                    //text_val = "Sensor erfolgreich getrennt";
                     text_id = R.string.tag_disconnection_successful;
                 }
             } catch (IOException e) {
                 Log.i("Tag data", "transceive failed and stopped");
                 text_id = R.string.tag_disconnection_failed;
-                //text_val = "Trennung des Sensors fehlgeschlagen!";
                 return;
             }
-            //text_val = "Tag disconnected";
         }
     }
 
 
     private void writeBlock(byte block, Tag tag, byte[] cmd) {
         if  (tag == null) {
-            //text_val = "Sensor nicht verbunden!";
             text_id = R.string.tag_not_connected;
             return;
         } else {
@@ -192,10 +183,8 @@ public class HandleTag {
 
                     try {
                         nfcv_senseTag.connect();
-                        //text_val = "Sensor verbunden";
                         text_id = R.string.tag_connected;
                     } catch (IOException e) {
-                        //text_val = "Verbindung zum Sensor verloren!";
                         text_id = R.string.tag_connection_lost;
                         return;
                     }
@@ -207,10 +196,8 @@ public class HandleTag {
                     } catch (IOException e) {
                         Log.i("Tag data", "transceive failed and stopped");
                         text_id = R.string.tag_disconnection_failed;
-                        //text_val = "Trennung des Sensors fehlgeschlagen!";
                         return;
                     }
-                    //text_val = "Sensor getrennt";
                     text_id = R.string.tag_disconnected;
                 }
         }
@@ -320,9 +307,7 @@ public class HandleTag {
         try {
             ack = nfcv_senseTag.transceive(cmdWriteTag);
         } catch (IOException e) {
-            //text_val="Tag transfer failed";
             text_id = R.string.tag_transfer_failed;
-            //Log.i("Tag data", "transceive failed");
             return null;
         }
 
@@ -344,7 +329,6 @@ public class HandleTag {
             reading = nfcv_senseTag.transceive(cmd);
             //Value.setText("Value: " + bytesToHex(reading) );
         } catch (IOException e) {
-            //text_val="Tag transfer failed";
             text_id = R.string.tag_transfer_failed; // new version requires exception handling on each step
             Log.i("Tag data", "transceive failed");
             return null;
@@ -358,7 +342,7 @@ public class HandleTag {
     }
 
     private boolean CheckIfMissionTimingIsCorrect(int frequency, int anzahl){
-        // check if frequency (originally set) differs by more than 10%.
+        // check if frequency (originally set) differs by more than 10% from real frequency.
         // That means the mission was unexpectedly stopped or the measurement time intervals were stretched, both due to low battery voltage.
         // In this case, don't show any values, but stop the mission, since we don't know the date/time values of the recorded temperatures.
         if(numberPassesConfigured!=0 && anzahl!=numberPassesConfigured && anzahl>1) { // either the mission is still running or it stopped/stretched unexpectedly
@@ -740,8 +724,6 @@ public class HandleTag {
         }else{
             outputTemperature = temperature;
         }
-        //double temperatureRounded=Math.round(temperature*20.)/20.;//for NFP temperature needs to be rounded to 0,05°C steps
-        //return temperatureRounded;
         return outputTemperature;
     }
 

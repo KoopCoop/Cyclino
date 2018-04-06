@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/mission_data">
     <EditTextPreference
         android:title="@string/preference_start_time"
         android:key="@string/preference_start_time_key"
@@ -17,4 +18,12 @@
         android:entries="@array/frequenzspinnerEintraege"
         android:entryValues="@array/frequenzspinnerEintraege"
         />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/calibration2">
+        <EditTextPreference
+            android:title="@string/preference_offset"
+            android:key="@string/preference_offset_key"
+            android:defaultValue="0"
+            android:inputType="numberDecimal|numberSigned"/>
+    </PreferenceCategory>
 </PreferenceScreen>
