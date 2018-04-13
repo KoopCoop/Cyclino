@@ -2,6 +2,9 @@ package biz.endotherm.NFC;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Calendar;
 
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     TabHost tabHost;
     TextView text_view;
     TextView wiederholungen;
+    TextView lowerTemp;
     TextView missionStatus;
     TextView startStopText;
     TextView calibrationText;
@@ -114,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
         text_view = (TextView) findViewById(R.id.textView);
         missionStatus = (TextView) findViewById(R.id.MissionStatusText);
         wiederholungen = (TextView) findViewById(R.id.wiederholungen);
+        lowerTemp = (TextView) findViewById(R.id.lowerTemp);
         cyclinoValueEdit = (TextView) findViewById(R.id.cyclinoValueEdit);
         calibrationTempEdit = (TextView) findViewById(R.id.calibrationTempEdit);
         startStopText = (TextView) findViewById(R.id.startStop);
@@ -272,6 +277,35 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(getApplicationContext(), getString(R.string.no_data_selected), Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+
+        final Button sortButton = (Button) findViewById(R.id.sortButton);
+        sortButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                missionTimingRight = handleTag.get_missionTimingRight();
+                // create an array with two columns (date/time and temp) and currentMeasurementNumber rows
+                String[ ][ ] sortedData = new String[currentMeasurementNumber][2];
+
+                if (missionTimingRight) {
+                    // fill array
+                    for (int i = 0; i < currentMeasurementNumber; i++) {
+                        sortedData[i][0] = adapter.data[i].date.toString();
+                        sortedData[i][1] = String.format("%.5f", adapter.data[i].temp);
+                    }
+                    // sort array by temperature ascending
+                    Arrays.sort(sortedData, new Comparator<String[]>() {
+                        @Override
+                        public int compare(String[] o1, String[] o2) {
+                            String valueOne = o1[1];
+                            String valueTwo = o2[1];
+                            return valueOne.compareTo(valueTwo);
+                        }
+                    });
+                }
+
             }
         });
 
