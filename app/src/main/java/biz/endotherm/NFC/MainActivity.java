@@ -285,16 +285,70 @@ public class MainActivity extends AppCompatActivity {
         sortButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                missionTimingRight = handleTag.get_missionTimingRight();
+                //TODO: einkommentieren:
+                //missionTimingRight = handleTag.get_missionTimingRight();
                 // create an array with two columns (date/time and temp) and currentMeasurementNumber rows
-                String[ ][ ] sortedData = new String[currentMeasurementNumber][2];
 
-                if (missionTimingRight) {
+
+                // TODO: Mock-Daten entfernen, echten Code einkommentieren!
+                //String[ ][ ] sortedData = new String[currentMeasurementNumber][2];
+                String[ ][ ] sortedData = new String[21][2];
+
+                //TODO: einkommentieren:
+                //if (missionTimingRight) {
                     // fill array
-                    for (int i = 0; i < currentMeasurementNumber; i++) {
-                        sortedData[i][0] = adapter.data[i].date.toString();
-                        sortedData[i][1] = String.format("%.5f", adapter.data[i].temp);
-                    }
+                //    for (int i = 0; i < currentMeasurementNumber; i++) {
+                //        sortedData[i][0] = adapter.data[i].date.toString();
+                //        sortedData[i][1] = String.format("%.5f", adapter.data[i].temp);
+                //    }
+
+                    sortedData[0][0] = "Sat Apr 14 00:15:00 GMT +02:00 2018";
+                    sortedData[1][0] = "Sat Apr 14 00:30:00 GMT +02:00 2018";
+                    sortedData[2][0] = "Sat Apr 14 00:45:00 GMT +02:00 2018";
+                    sortedData[3][0] = "Sat Apr 14 01:00:00 GMT +02:00 2018";
+                    sortedData[4][0] = "Sat Apr 14 01:15:00 GMT +02:00 2018";
+                    sortedData[5][0] = "Sat Apr 14 01:30:00 GMT +02:00 2018";
+                    sortedData[6][0] = "Sat Apr 14 01:45:00 GMT +02:00 2018";
+                    sortedData[7][0] = "Sat Apr 14 02:00:00 GMT +02:00 2018";
+                    sortedData[8][0] = "Sat Apr 14 02:15:00 GMT +02:00 2018";
+                    sortedData[9][0] = "Sat Apr 14 02:30:00 GMT +02:00 2018";
+                    sortedData[10][0] = "Sat Apr 14 02:45:00 GMT +02:00 2018";
+                    sortedData[11][0] = "Sat Apr 14 03:00:00 GMT +02:00 2018";
+                    sortedData[12][0] = "Sat Apr 14 03:15:00 GMT +02:00 2018";
+                    sortedData[13][0] = "Sat Apr 14 03:30:00 GMT +02:00 2018";
+                    sortedData[14][0] = "Sat Apr 14 03:45:00 GMT +02:00 2018";
+                    sortedData[15][0] = "Sat Apr 14 04:00:00 GMT +02:00 2018";
+                    sortedData[16][0] = "Sat Apr 14 04:15:00 GMT +02:00 2018";
+                    sortedData[17][0] = "Sat Apr 14 04:30:00 GMT +02:00 2018";
+                    sortedData[18][0] = "Sat Apr 14 04:45:00 GMT +02:00 2018";
+                    sortedData[19][0] = "Sat Apr 14 05:00:00 GMT +02:00 2018";
+                    sortedData[20][0] = "Sat Apr 14 05:15:00 GMT +02:00 2018";
+
+                    sortedData[0][1] = "34,92997";
+                    sortedData[1][1] = "36,75070";
+                    sortedData[2][1] = "36,75070";
+                    sortedData[3][1] = "36,72269";
+                    sortedData[4][1] = "36,75070";
+                    sortedData[5][1] = "36,66667";
+                    sortedData[6][1] = "36,75070";
+                    sortedData[7][1] = "36,83473";
+                    sortedData[8][1] = "36,77871";
+                    sortedData[9][1] = "36,77871";
+                    sortedData[10][1] = "36,69468";
+                    sortedData[11][1] = "36,77871";
+                    sortedData[12][1] = "36,77871";
+                    sortedData[13][1] = "36,72269";
+                    sortedData[14][1] = "36,55462";
+                    sortedData[15][1] = "36,63866";
+                    sortedData[16][1] = "36,49860";
+                    sortedData[17][1] = "36,52661";
+                    sortedData[18][1] = "36,38655";
+                    sortedData[19][1] = "36,55462";
+                    sortedData[20][1] = "34,12345";
+
+
+
+
                     // sort array by temperature ascending
                     Arrays.sort(sortedData, new Comparator<String[]>() {
                         @Override
@@ -304,7 +358,8 @@ public class MainActivity extends AppCompatActivity {
                             return valueOne.compareTo(valueTwo);
                         }
                     });
-                }
+                    //TODO: einkommentieren:
+                //}
 
             }
         });
