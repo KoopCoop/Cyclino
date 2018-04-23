@@ -66,6 +66,7 @@
 
     <string name="mission">Mission</string>
     <string name="config">Konfig</string>
+    <string name="evaluation">Auswertung</string>
     <string name="calibration2">Kalibration</string>
 
     <string-array name="frequenzspinnerEintraege">

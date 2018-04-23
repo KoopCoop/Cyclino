@@ -1,6 +1,8 @@
 package biz.endotherm.NFC;
 
+import android.content.Context;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.nfc.Tag;
 import android.nfc.tech.NfcV;
 import android.util.Log;
@@ -8,6 +10,7 @@ import android.widget.Switch;
 
 import com.jjoe64.graphview.series.DataPoint;
 
+import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -15,6 +18,7 @@ import java.lang.Math;
 import java.util.Date;
 
 import java.io.IOException;
+import java.util.List;
 
 public class HandleTag {
     private String text_val;
@@ -707,7 +711,6 @@ public class HandleTag {
     public DataPoint[] GetData() {
         return data.toArray(new DataPoint[data.size()]);
     }
-
 
     private double ConvertValue(byte loByte, byte hiByte, boolean roundTemp) {
         double outputTemperature;
