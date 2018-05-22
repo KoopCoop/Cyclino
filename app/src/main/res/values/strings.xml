@@ -52,8 +52,10 @@
     <string name="read">Auslesen</string>
     <string name="copy">Daten kopieren</string>
     <string name="round">Werte runden</string>
+    <string name="evaluate">Auswerten</string>>
+    <string name="average_result">Mittelwert aus 3: </string>
+    <string name="average_result_rounded">gerundet: </string>
     <string name="sort">Sortieren</string>
-    <string name="lower_temp">Temp-Untergrenze (°C):</string>
     <string name="stop">Stop</string>
     <string name="start">Start</string>
     <string name="new_mission">Neue Mission starten mit </string>

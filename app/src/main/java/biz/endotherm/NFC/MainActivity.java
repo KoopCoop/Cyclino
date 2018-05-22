@@ -65,13 +65,14 @@ public class MainActivity extends AppCompatActivity {
     TabHost tabHost;
     TextView text_view;
     TextView wiederholungen;
-    TextView lowerTemp;
     TextView missionStatus;
     TextView startStopText;
     TextView calibrationText;
     TextView cyclinoValueEdit;
     TextView calibrationTempEdit;
     TextView missionStatusText;
+    TextView averageResult;
+    TextView averageResultRounded;
     ListView messwerteliste;
     ListView sortedDataList;
     Spinner frequenzSpinner;
@@ -99,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
     public MainActivity() {
         sortedData = new ArrayList<>();
     }
+    ArrayList<String[]> selectedList = new ArrayList<String[]>();
     long newCalibrationOffset=0;
     double cyclinoValue = 0;
     double calibrationTemp = 0;
@@ -142,12 +144,15 @@ public class MainActivity extends AppCompatActivity {
         text_view = (TextView) findViewById(R.id.textView);
         missionStatus = (TextView) findViewById(R.id.MissionStatusText);
         wiederholungen = (TextView) findViewById(R.id.wiederholungen);
-        lowerTemp = (TextView) findViewById(R.id.lowerTemp);
         cyclinoValueEdit = (TextView) findViewById(R.id.cyclinoValueEdit);
         calibrationTempEdit = (TextView) findViewById(R.id.calibrationTempEdit);
         startStopText = (TextView) findViewById(R.id.startStop);
         calibrationText= (TextView) findViewById(R.id.calibrationText);
         missionStatusText = (TextView) findViewById(R.id.missionStatus);
+        averageResult = (TextView) findViewById(R.id.averageResult);
+        averageResult.setText("0.0");
+        averageResultRounded = (TextView) findViewById(R.id.averageResultRounded);
+        averageResultRounded.setText("0.0");
 
         Date now = new Date();
         long millisNow = now.getTime();
@@ -307,78 +312,59 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        final Button auswerteButton = (Button) findViewById(R.id.auswerteButton);
+        auswerteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                averageResult.setText("0.0");
+                averageResultRounded.setText("0.0");
+
+                missionTimingRight = handleTag.get_missionTimingRight();
+
+                if (missionTimingRight) {
+
+                    String[] dataString = {};
+                    // alle Werte an selectedList anhängen, außer Werten nahe an zu niedrigen
+                    // Temperaturwerten sowie dem ersten und letzten Wert
+                    for (int i = 0; i < currentMeasurementNumber; i++) {
+                        if ( adapter.data[i].temp >= 35.0){
+                            if ( i > 0 ){
+                               if ( adapter.data[i-1].temp >= 35.0){
+                                   if ( i < currentMeasurementNumber - 1 ){
+                                     if ( adapter.data[i+1].temp >= 35.0){
+                                           dataString = new String[]{adapter.data[i].date.toString(), String.format("%.5f", adapter.data[i].temp)};
+                                           selectedList.add(dataString);
+                                       }
+                                   }
+                               }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+
         final Button sortButton = (Button) findViewById(R.id.sortButton);
         sortButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                averageResult.setText("0.0");
+                averageResultRounded.setText("0.0");
 
+                missionTimingRight = handleTag.get_missionTimingRight();
 
+                if (missionTimingRight) {
 
-                //TODO: einkommentieren:
-                //missionTimingRight = handleTag.get_missionTimingRight();
-                // create an array with two columns (date/time and temp) and currentMeasurementNumber rows
-
-
-                // TODO: Mock-Daten entfernen, echten Code einkommentieren!
-                //String[ ][ ] sortedList = new String[currentMeasurementNumber][2];
-                String[][] sortedList = new String[21][2];
-
-                //TODO: einkommentieren:
-                //if (missionTimingRight) {
+// Hier erstmal die Daten aus selectedList an sortedList anhängen, danach sortieren.
+                    String[ ][ ] sortedList = new String[selectedList.size()][2];
                     // fill array
-                //    for (int i = 0; i < currentMeasurementNumber; i++) {
-                //        sortedData[i][0] = adapter.data[i].date.toString();
-                //        sortedData[i][1] = String.format("%.5f", adapter.data[i].temp);
-                //    }
+                    for (int i = 0; i < selectedList.size(); i++) {
+                        sortedList[i] = selectedList.get(i);
+                    }
 
-                    sortedList[0][0] = "Sat Apr 14 00:15:00 GMT +02:00 2018";
-                    sortedList[1][0] = "Sat Apr 14 00:30:00 GMT +02:00 2018";
-                    sortedList[2][0] = "Sat Apr 14 00:45:00 GMT +02:00 2018";
-                    sortedList[3][0] = "Sat Apr 14 01:00:00 GMT +02:00 2018";
-                    sortedList[4][0] = "Sat Apr 14 01:15:00 GMT +02:00 2018";
-                    sortedList[5][0] = "Sat Apr 14 01:30:00 GMT +02:00 2018";
-                    sortedList[6][0] = "Sat Apr 14 01:45:00 GMT +02:00 2018";
-                    sortedList[7][0] = "Sat Apr 14 02:00:00 GMT +02:00 2018";
-                    sortedList[8][0] = "Sat Apr 14 02:15:00 GMT +02:00 2018";
-                    sortedList[9][0] = "Sat Apr 14 02:30:00 GMT +02:00 2018";
-                    sortedList[10][0] = "Sat Apr 14 02:45:00 GMT +02:00 2018";
-                    sortedList[11][0] = "Sat Apr 14 03:00:00 GMT +02:00 2018";
-                    sortedList[12][0] = "Sat Apr 14 03:15:00 GMT +02:00 2018";
-                    sortedList[13][0] = "Sat Apr 14 03:30:00 GMT +02:00 2018";
-                    sortedList[14][0] = "Sat Apr 14 03:45:00 GMT +02:00 2018";
-                    sortedList[15][0] = "Sat Apr 14 04:00:00 GMT +02:00 2018";
-                    sortedList[16][0] = "Sat Apr 14 04:15:00 GMT +02:00 2018";
-                    sortedList[17][0] = "Sat Apr 14 04:30:00 GMT +02:00 2018";
-                    sortedList[18][0] = "Sat Apr 14 04:45:00 GMT +02:00 2018";
-                    sortedList[19][0] = "Sat Apr 14 05:00:00 GMT +02:00 2018";
-                    sortedList[20][0] = "Sat Apr 14 05:15:00 GMT +02:00 2018";
-
-                    sortedList[0][1] = "34,92997";
-                    sortedList[1][1] = "36,75070";
-                    sortedList[2][1] = "36,75070";
-                    sortedList[3][1] = "36,72269";
-                    sortedList[4][1] = "36,75070";
-                    sortedList[5][1] = "36,66667";
-                    sortedList[6][1] = "36,75070";
-                    sortedList[7][1] = "36,83473";
-                    sortedList[8][1] = "36,77871";
-                    sortedList[9][1] = "36,77871";
-                    sortedList[10][1] = "36,69468";
-                    sortedList[11][1] = "36,77871";
-                    sortedList[12][1] = "36,77871";
-                    sortedList[13][1] = "36,72269";
-                    sortedList[14][1] = "36,55462";
-                    sortedList[15][1] = "36,63866";
-                    sortedList[16][1] = "36,49860";
-                    sortedList[17][1] = "36,52661";
-                    sortedList[18][1] = "36,38655";
-                    sortedList[19][1] = "36,55462";
-                    sortedList[20][1] = "34,12345";
-
-                    // sort array by temperature ascending
-                //TODO: einkommentieren!
-                //for (int i = 0; i < currentMeasurementNumber; i++)
-                    for (int i = 0; i < 20; i++)
+// Sortierung:
                     Arrays.sort(sortedList, new Comparator<String[]>() {
                         @Override
                         public int compare(String[] o1, String[] o2) {
@@ -387,29 +373,41 @@ public class MainActivity extends AppCompatActivity {
                             return valueOne.compareTo(valueTwo);
                         }
                     });
-                ListView listView = (ListView) findViewById(R.id.sortedList);
-                listView.setAdapter(sortedAdapter);
-                // prevent listview from scrolling
-                if (sortedAdapter.getCount() > 0) {
-                    View item = sortedAdapter.getView(0, null, listView);
-                    item.measure(0, 0);
-                    ViewGroup.LayoutParams lp = listView.getLayoutParams();
-                    lp.height = (item.getMeasuredHeight() + listView.getDividerHeight())
-                            * sortedAdapter.getCount();
-                    listView.setLayoutParams(lp);
+
+// erste 3 Werte mitteln:
+                    int numberOfValues = 3;
+                    if ( selectedList.size()  >= numberOfValues ){
+                        double sum = 0;
+                        for (int i = 0; i < numberOfValues; i++) {
+                            sum = sum + Double.parseDouble(sortedList[i][1].replace(",",".") );
+                        }
+                        double average =  sum / numberOfValues;
+                        averageResult.setText(Double.toString(average));
+                        double averageRounded = Math.round(average * 20.) / 20.; // auf 0,05°C runden
+                        averageResultRounded.setText(Double.toString(averageRounded));
+                    }
+
+// Daten anhängen (für die Ausgabe)
+                    sortedData.clear();
+                    for (int i = 0; i < selectedList.size(); i++){
+                        SortedDataPoint sortedDataPoint = new SortedDataPoint();
+                        sortedDataPoint.temp = sortedList[i][1];
+                        sortedDataPoint.date = sortedList[i][0];
+                        sortedData.add(sortedDataPoint);
+                    }
+                    sortedAdapter.setData(GetData());
+                    ListView listView = (ListView) findViewById(R.id.sortedList);
+                    listView.setAdapter(sortedAdapter);
+                    // prevent listview from scrolling
+                    if (sortedAdapter.getCount() > 0) {
+                        View item = sortedAdapter.getView(0, null, listView);
+                        item.measure(0, 0);
+                        ViewGroup.LayoutParams lp = listView.getLayoutParams();
+                        lp.height = (item.getMeasuredHeight() + listView.getDividerHeight())
+                                * sortedAdapter.getCount();
+                        listView.setLayoutParams(lp);
+                    }
                 }
-                    //TODO: einkommentieren:
-                //}
-                sortedData.clear();
-                //TODO: einkommentieren!
-                //for (int i = 0; i < currentMeasurementNumber; i++)
-                for (int i = 0; i < 20; i++){
-                    SortedDataPoint sortedDataPoint = new SortedDataPoint();
-                    sortedDataPoint.temp = sortedList[i][1];
-                    sortedDataPoint.date = sortedList[i][0];
-                    sortedData.add(sortedDataPoint);
-                }
-                sortedAdapter.setData(GetData());
             }
         });
 
